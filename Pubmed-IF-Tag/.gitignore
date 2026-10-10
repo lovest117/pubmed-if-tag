@@ -1,0 +1,9 @@
+# 私钥，绝不公开
+*.pem
+*.crx
+
+# 临时文件
+chrome-temp-pack/
+*.zip
+.DS_Store
+Thumbs.db
