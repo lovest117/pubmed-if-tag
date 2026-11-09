@@ -1,6 +1,11 @@
+# 签名私钥与打包产物，严禁提交
 *.pem
 *.crx
 *.zip
+# 例外：主页的下载包要随仓库一起发布
+!site/download/*.zip
 chrome-temp-pack/
+dist/
+.wrangler/
 .DS_Store
 Thumbs.db
