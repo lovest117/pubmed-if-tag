@@ -30,11 +30,12 @@ Front Neurol. 2024;15:1234567.           IF 3.3 (Q2)
 4. 点击 **加载已解压的扩展程序**，选择解压后的文件夹
 5. 打开 [PubMed](https://pubmed.ncbi.nlm.nih.gov/) 搜索文献即可
 
-### 方式二：CRX 文件安装
+### 方式二：CRX 文件安装（Edge 上不可用）
 
 1. 从 [Releases](https://github.com/lovest117/pubmed-if-tag/releases) 下载最新 `.crx` 文件
 2. 拖入 `edge://extensions/` 页面
-3. 如浏览器拦截，请使用方式一
+
+**注意**：新版 Edge 会把它判定为「来自其他源」，扩展卡片出现警告且**开关被锁定为关闭、无法启用**，插件不会运行。此时请改用方式一。
 
 ## 数据来源
 
