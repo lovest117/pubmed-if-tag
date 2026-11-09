@@ -55,24 +55,23 @@
     }
   }
 
-  // 反馈链接：预填期刊信息模板，用户补齐后提交
+  // 反馈链接：按固定字段生成 Issue，仓库 Actions 会解析并自动补录
   function buildFeedbackUrl() {
-    var title = '期刊未收录（无 IF 标签）：请填写期刊缩写';
+    var title = '期刊未收录：请填写期刊缩写';
     var body = [
-      '**期刊缩写（按 PubMed 引用行里显示的样子填，例如 Nat Commun）：**',
+      '### 期刊缩写（如 Nat Commun）',
       '',
       '',
-      '**影响因子 IF：**',
+      '### 影响因子 IF（如 14.7）',
       '',
       '',
-      '**JCR 分区（Q1 / Q2 / Q3 / Q4）：**',
+      '### JCR 分区（Q1 / Q2 / Q3 / Q4）',
       '',
       '',
-      '**出现该期刊的文献链接或 PMID：**',
+      '### 文献链接或 PMID',
       '',
       '',
-      '----',
-      '提交后作者会把该期刊补进数据库，届时在插件弹窗点一次「一键更新 IF 库」即可生效。'
+      '<!-- 提交后仓库会自动把它补进期刊库，你在弹窗点一次「一键更新 IF 库」即可生效。请勿修改上面的字段名。 -->'
     ].join('\n');
     return 'https://github.com/' + REPO + '/issues/new?title=' +
       encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
