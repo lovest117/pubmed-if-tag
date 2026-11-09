@@ -1005,7 +1005,8 @@ const JOURNAL_IF_DB = {
   "prehosp emerg care": { if: 2.5, q: "Q2", name: "Prehospital Emergency Care" },
   "wilderness environ med": { if: 1.5, q: "Q3", name: "Wilderness & Environmental Medicine" },
   "j virol": { if: 5.4, q: "Q1", name: "Journal of Virology" },
-  "cell biosci": { if: 5.0, q: "Q1", name: "Cell Bioscience" }
+  "cell biosci": { if: 5.0, q: "Q1", name: "Cell Bioscience" },
+  "gut microbes": { if: 12.2, q: "Q1", name: "Gut Microbes" }
 };
 
 // 暴露给content script使用
