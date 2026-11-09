@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pubmed IF Tag",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "在PubMed搜索结果和文章页自动标注期刊影响因子（IF）和JCR分区",
   "icons": {
     "16": "icons/icon16.png",
@@ -14,7 +14,7 @@
         "https://pubmed.ncbi.nlm.nih.gov/*",
         "https://www.ncbi.nlm.nih.gov/pubmed/*"
       ],
-      "js": ["data/journal-if.js", "content.js"],
+      "js": ["data/journal-if.js", "data/library.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
     }
@@ -27,5 +27,10 @@
       "128": "icons/icon128.png"
     }
   },
-  "permissions": ["storage"]
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://api.github.com/*",
+    "https://cdn.jsdelivr.net/*",
+    "https://raw.githubusercontent.com/*"
+  ]
 }

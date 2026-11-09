@@ -1,12 +1,13 @@
 /**
- * PubMed IF Helper - 内容脚本
+ * Pubmed IF Tag - 内容脚本
  * 在PubMed搜索结果页和文章详情页自动显示期刊影响因子
  */
 
 (function () {
   'use strict';
 
-  const DB = window.JOURNAL_IF_DB || {};
+  // 当前生效的期刊库；启动时会用本地存储里的更新数据覆盖内置库
+  let DB = window.JOURNAL_IF_DB || {};
   const RUNTIME = {
     processed: new WeakSet(),
     observer: null,
@@ -258,7 +259,7 @@
   function processArticleDetailPage() {
     // 直接找 short-citation 容器
     const citations = document.querySelectorAll('.short-citation, .article-source');
-    console.log('[PubMed IF Helper][详情页] 找到', citations.length, '个引用容器');
+    console.log('[Pubmed IF Tag][详情页] 找到', citations.length, '个引用容器');
 
     citations.forEach(citEl => {
       if (citEl.querySelector('[data-pifh-badge]')) return;
@@ -276,7 +277,7 @@
         const ifInfo = lookupIF(cleanText);
         if (!ifInfo) continue;
 
-        console.log('[PubMed IF Helper][详情页] 在short-citation找到期刊:', cleanText, 'IF=' + ifInfo.if);
+        console.log('[Pubmed IF Tag][详情页] 在short-citation找到期刊:', cleanText, 'IF=' + ifInfo.if);
 
         const { hl, color } = getIFColors(ifInfo.if);
 
@@ -300,7 +301,7 @@
 
     // 兜底：如果short-citation方式没找到，直接扫描页面文本
     if (!document.querySelector('[data-pifh-badge]')) {
-      console.log('[PubMed IF Helper][详情页] short-citation未找到，扫描全页文本节点');
+      console.log('[Pubmed IF Tag][详情页] short-citation未找到，扫描全页文本节点');
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
       let node;
       while ((node = walker.nextNode())) {
@@ -319,7 +320,7 @@
         const sibText = parent ? parent.textContent : '';
         if (!/(19|20)\d{2}/.test(sibText)) continue;
 
-        console.log('[PubMed IF Helper][详情页] 全页扫描找到期刊:', cleanText, 'IF=' + ifInfo.if);
+        console.log('[Pubmed IF Tag][详情页] 全页扫描找到期刊:', cleanText, 'IF=' + ifInfo.if);
         const { hl, color } = getIFColors(ifInfo.if);
         if (parent && parent.tagName !== 'A') {
           parent.style.backgroundColor = hl;
@@ -341,15 +342,15 @@
    */
   function processPage() {
     const url = window.location.href;
-    console.log('[PubMed IF Helper] processPage, URL:', url);
+    console.log('[Pubmed IF Tag] processPage, URL:', url);
     if (url.includes('/?') || url.match(/pubmed\.ncbi\.nlm\.nih\.gov\/$/)) {
-      console.log('[PubMed IF Helper] 判断为搜索结果页');
+      console.log('[Pubmed IF Tag] 判断为搜索结果页');
       processSearchResultsPage();
     } else if (url.match(/\/\d+\/$/)) {
-      console.log('[PubMed IF Helper] 判断为文章详情页');
+      console.log('[Pubmed IF Tag] 判断为文章详情页');
       processArticleDetailPage();
     } else {
-      console.log('[PubMed IF Helper] URL类型不明确，两个都试');
+      console.log('[Pubmed IF Tag] URL类型不明确，两个都试');
       processSearchResultsPage();
       processArticleDetailPage();
     }
@@ -385,7 +386,28 @@
 
   // ========== 初始化 ==========
 
-  function init() {
+  /**
+   * 加载当前生效的期刊库：本地存储中的更新数据优先，未更新则用内置库
+   */
+  async function loadActiveLibrary() {
+    try {
+      if (window.PIFLibrary && window.PIFLibrary.getActiveLibrary) {
+        const active = await window.PIFLibrary.getActiveLibrary();
+        if (active && active.entries && Object.keys(active.entries).length > 0) {
+          DB = active.entries;
+          console.log('[Pubmed IF Tag] 期刊库来源: ' + active.source + '，生效条数: ' + Object.keys(DB).length);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('[Pubmed IF Tag] 读取更新库失败，退回内置库', err);
+    }
+    console.log('[Pubmed IF Tag] 已加载内置库，期刊数: ' + Object.keys(DB).length);
+  }
+
+  async function init() {
+    await loadActiveLibrary();
+
     // 等DOM加载完成
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -410,8 +432,6 @@
         setTimeout(() => processPage(), 1500);
       }
     }, 1000);
-
-    console.log('[PubMed IF Helper] 已加载，内置期刊数: ' + Object.keys(DB).length);
   }
 
   init();
