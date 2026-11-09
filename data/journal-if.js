@@ -22,7 +22,6 @@ const JOURNAL_IF_DB = {
   "nat rev cancer": { if: 72.8, q: "Q1", name: "Nature Reviews Cancer" },
   "nat rev immunol": { if: 65.5, q: "Q1", name: "Nature Reviews Immunology" },
   "nat rev genet": { if: 42.4, q: "Q1", name: "Nature Reviews Genetics" },
-  "nat rev neurosci": { if: 32.6, q: "Q1", name: "Nature Reviews Neuroscience" },
   "nat rev mol cell biol": { if: 81.3, q: "Q1", name: "Nature Reviews Molecular Cell Biology" },
   "nat rev cardiol": { if: 38.7, q: "Q1", name: "Nature Reviews Cardiology" },
   "nat rev gastroenterol hepatol": { if: 42.9, q: "Q1", name: "Nature Reviews Gastroenterology & Hepatology" },
@@ -83,7 +82,6 @@ const JOURNAL_IF_DB = {
   "j hepatol": { if: 25.7, q: "Q1", name: "Journal of Hepatology" },
   "am j gastroenterol": { if: 8.5, q: "Q1", name: "American Journal of Gastroenterology" },
   "clin gastroenterol hepatol": { if: 11.9, q: "Q1", name: "Clinical Gastroenterology and Hepatology" },
-  "gut liver": { if: 5.2, q: "Q1", name: "Gut and Liver" },
   "aliment pharmacol ther": { if: 6.1, q: "Q1", name: "Alimentary Pharmacology & Therapeutics" },
   "inflamm bowel dis": { if: 4.7, q: "Q1", name: "Inflammatory Bowel Diseases" },
   "ibd": { if: 4.7, q: "Q1", name: "Inflammatory Bowel Diseases" },
@@ -188,7 +186,6 @@ const JOURNAL_IF_DB = {
   // ===== 精神心理 =====
   "jama psychiatry": { if: 25.1, q: "Q1", name: "JAMA Psychiatry" },
   "am j psychiatry": { if: 18.3, q: "Q1", name: "American Journal of Psychiatry" },
-  "ajp": { if: 18.3, q: "Q1", name: "American Journal of Psychiatry" },
   "lancet psychiatry": { if: 27.8, q: "Q1", name: "Lancet Psychiatry" },
   "world psychiatry": { if: 49.5, q: "Q1", name: "World Psychiatry" },
   "br j psychiatry": { if: 10.6, q: "Q1", name: "British Journal of Psychiatry" },
@@ -348,7 +345,6 @@ const JOURNAL_IF_DB = {
 
   // ===== 病理/检验 =====
   "am j pathol": { if: 5.2, q: "Q1", name: "American Journal of Pathology" },
-  "ajp": { if: 5.2, q: "Q1", name: "American Journal of Pathology" },
   "j pathol": { if: 7.5, q: "Q1", name: "Journal of Pathology" },
   "mod pathol": { if: 7.5, q: "Q1", name: "Modern Pathology" },
   "histopathology": { if: 5.1, q: "Q1", name: "Histopathology" },
@@ -485,7 +481,6 @@ const JOURNAL_IF_DB = {
   "neuroscience": { if: 3.7, q: "Q1", name: "Neuroscience" },
   "behav brain res": { if: 3.2, q: "Q1", name: "Behavioural Brain Research" },
   "prog neurobiol": { if: 8.0, q: "Q1", name: "Progress in Neurobiology" },
-  "nat rev neurosci": { if: 28.8, q: "Q1", name: "Nature Reviews Neuroscience" },
 
   // ===== 心理学/精神病学（补充） =====
   "psychol med": { if: 5.7, q: "Q1", name: "Psychological Medicine" },
@@ -542,7 +537,6 @@ const JOURNAL_IF_DB = {
   "nat procr": { if: 0.0, q: "Q4", name: "Nature Precedings" },
 
   // ===== 其他常见期刊（补充） =====
-  "qjm": { if: 3.2, q: "Q2", name: "QJM" },
   "annu rev pharmacol toxicol": { if: 7.5, q: "Q1", name: "Annual Review of Pharmacology and Toxicology" },
   "annu rev neurosci": { if: 21.8, q: "Q1", name: "Annual Review of Neuroscience" },
   "annu rev psychol": { if: 10.5, q: "Q1", name: "Annual Review of Psychology" },
@@ -681,7 +675,6 @@ const JOURNAL_IF_DB = {
   "neuroimage clin": { if: 3.5, q: "Q1", name: "NeuroImage: Clinical" },
   "j cogn neurosci": { if: 3.5, q: "Q1", name: "Journal of Cognitive Neuroscience" },
   "cortex": { if: 4.5, q: "Q1", name: "Cortex" },
-  "nat hum behav": { if: 13.0, q: "Q1", name: "Human Behaviour and Neuroscience" },
   "nat hum behav": { if: 13.0, q: "Q1", name: "Nature Human Behaviour" },
 
   // 分子/细胞神经科学
@@ -726,6 +719,7 @@ const JOURNAL_IF_DB = {
   "wilderness environ med": { if: 1.5, q: "Q3", name: "Wilderness & Environmental Medicine" },
   "j virol": { if: 5.4, q: "Q1", name: "Journal of Virology" },
   "cell biosci": { if: 5.0, q: "Q1", name: "Cell Bioscience" },
+  "neurochem int": { if: 4.4, q: "Q2", name: "Neurochemistry International" },
   "gut microbes": { if: 12.2, q: "Q1", name: "Gut Microbes" }
 };
 

@@ -89,6 +89,19 @@ if ($entries -contains "README.md" -or $entries -contains "site/index.html") { t
 $popupHtml = Get-Content -LiteralPath (Join-Path $stage "popup.html") -Raw -Encoding utf8
 if ($popupHtml -match '<script>') { throw "popup.html 存在内联 <script>，会被 MV3 CSP 拦截" }
 
+# 期刊库不允许重复键：JS 对象字面量遇到重复键会静默后者覆盖前者，
+# 表现是"某本期刊显示了另一本期刊的 IF"，而不报任何错
+$dbText = [IO.File]::ReadAllText((Join-Path $stage "data\journal-if.js"), [Text.Encoding]::UTF8)
+$dbKeys = @{}
+foreach ($line in ($dbText -split "`n")) {
+  if ($line -match '^\s*"([^"]+)"\s*:\s*\{\s*if\s*:') {
+    $k = $matches[1]
+    if ($dbKeys.ContainsKey($k)) { throw "期刊库存在重复键：$k" }
+    $dbKeys[$k] = 1
+  }
+}
+Write-Output ("  期刊库：" + $dbKeys.Count + " 条，无重复键")
+
 # ---------- 4. 生成站点下载包 ----------
 $dlDir = Join-Path $Root "site\download"
 New-Item -ItemType Directory -Force -Path $dlDir | Out-Null
