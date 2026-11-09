@@ -180,8 +180,12 @@
 
   /**
    * 依次尝试各数据源，返回 { entries, count, source }
+   * 会拒绝条目数明显少于内置库的结果：jsDelivr 的 @main 地址有 CDN 缓存，
+   * 仓库刚更新数据时可能仍返回旧版本，此时应换下一个源而不是把旧库写进本地
    */
   async function fetchLatestLibrary() {
+    const builtin = (typeof window !== 'undefined' && window.JOURNAL_IF_DB) || {};
+    const builtinCount = Object.keys(builtin).length;
     const errors = [];
     for (let i = 0; i < REMOTE_SOURCES.length; i++) {
       const src = REMOTE_SOURCES[i];
@@ -190,6 +194,9 @@
         const entries = parseJournalJs(text);
         const count = Object.keys(entries).length;
         if (count < 50) throw new Error('解析结果异常，仅 ' + count + ' 条');
+        if (builtinCount >= 200 && count < Math.floor(builtinCount * 0.9)) {
+          throw new Error('返回 ' + count + ' 条，少于内置的 ' + builtinCount + ' 条，疑似缓存未更新');
+        }
         return { entries: entries, count: count, source: src.name };
       } catch (err) {
         errors.push(src.name + '：' + (err && err.message ? err.message : String(err)));
