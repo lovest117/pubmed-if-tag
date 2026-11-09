@@ -120,15 +120,31 @@
   }
   .footer a { color: #64748b; text-decoration: none; }
   .footer a:hover { color: #2563eb; }
+  .footer #newVer a { color: #2563eb; font-weight: 600; }
+  #verText { cursor: pointer; }
+  #verText:hover { color: #2563eb; }
+  .btn-set {
+    flex: 0 0 auto;
+    font-family: inherit;
+    font-size: 11px;
+    color: #64748b;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 4px 9px;
+    cursor: pointer;
+  }
+  .btn-set:hover { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; }
 </style>
 </head>
 <body>
   <div class="header">
     <div class="logo">IF</div>
-    <div>
+    <div style="flex:1">
       <div class="title">Pubmed IF Tag</div>
-      <div class="subtitle">影响因子自动标注 · 免费替代ScholarScope</div>
+      <div class="subtitle">影响因子自动标注</div>
     </div>
+    <button class="btn-set" id="btnSettings" title="打开设置">设置</button>
   </div>
 
   <div class="stats">
@@ -150,8 +166,7 @@
     <button id="btnUpdate" class="btn-primary">更新期刊数据</button>
     <div id="updateStatus" class="update-status">从 GitHub 拉取最新期刊数据，补上缺失期刊</div>
     <div class="update-links">
-      <a href="#" id="linkFeedback" target="_blank">反馈无 IF 标签期刊</a>
-      <a href="#" id="linkSuggest" target="_blank">功能建议</a>
+      <a href="#" id="linkFeedback" target="_blank">反馈与建议</a>
     </div>
     <div class="update-links sub">
       <a href="#" id="btnReset">恢复内置库</a>
@@ -160,7 +175,7 @@
   </div>
 
   <div class="footer">
-    <span id="verText"></span><span>主页与反馈 <a href="https://pubmed-if-tag.pages.dev/" target="_blank">pubmed-if-tag.pages.dev</a></span><br>
+    <span id="verText"></span><a href="https://pubmed-if-tag.pages.dev/" target="_blank" id="homeLink">主页</a><span id="newVer"></span><br>
     数据来源 Clarivate JCR 2023 · 仅自用
   </div>
 

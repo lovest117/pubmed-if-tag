@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Pubmed IF Tag 设置</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    padding: 28px 20px 48px;
+    font-size: 14px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 15px;
+  }
+  h1 { font-size: 17px; font-weight: 600; }
+  .sub { font-size: 12px; color: #64748b; margin-top: 3px; }
+  .card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 0; border-top: 1px solid #f1f5f9;
+  }
+  .row:first-of-type { border-top: none; padding-top: 0; }
+  .row .txt { flex: 1; padding-right: 16px; }
+  .row .name { font-size: 13px; font-weight: 500; }
+  .row .hint { font-size: 11.5px; color: #94a3b8; margin-top: 3px; line-height: 1.45; }
+  .switch { position: relative; width: 38px; height: 21px; flex: 0 0 auto; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; background: #cbd5e1; border-radius: 21px;
+    cursor: pointer; transition: background .16s;
+  }
+  .slider::before {
+    content: ''; position: absolute; width: 15px; height: 15px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: transform .16s;
+  }
+  .switch input:checked + .slider { background: #2563eb; }
+  .switch input:checked + .slider::before { transform: translateX(17px); }
+  .thres { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 4px; }
+  .thres label { display: block; font-size: 11px; color: #64748b; margin-bottom: 4px; }
+  .thres input {
+    width: 100%; padding: 6px 8px; font-size: 13px; font-family: inherit;
+    border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; color: #1e293b;
+  }
+  .thres input:focus { outline: none; border-color: #2563eb; }
+  .bar { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+  button {
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    border-radius: 8px; padding: 9px 18px; border: 1px solid transparent;
+  }
+  .primary { background: #2563eb; color: #fff; }
+  .primary:hover { background: #1d4ed8; }
+  .ghost { background: #fff; color: #475569; border-color: #cbd5e1; }
+  .ghost:hover { background: #f1f5f9; }
+  .msg { font-size: 12px; color: #16a34a; }
+  .msg.err { color: #b91c1c; }
+  footer { margin-top: 26px; font-size: 11.5px; color: #94a3b8; line-height: 1.6; }
+  footer a { color: #64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">IF</div>
+    <div>
+      <h1>设置</h1>
+      <div class="sub">改动保存后，刷新 PubMed 页面生效</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>显示位置</h2>
+    <div class="row">
+      <div class="txt">
+        <div class="name">搜索结果页</div>
+        <div class="hint">在文献列表的引用行后面标注 IF</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="showSearch"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="txt">
+        <div class="name">文章详情页</div>
+        <div class="hint">在单篇文章页的期刊引用处标注 IF</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="showDetail"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>标签外观</h2>
+    <div class="row">
+      <div class="txt">
+        <div class="name">显示分区</div>
+        <div class="hint">标签里附带 Q1/Q2；关掉只显示 IF 数值</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="showQuartile"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="txt">
+        <div class="name">紧凑样式</div>
+        <div class="hint">更小的标签、去掉底色，适合列表排版拥挤时</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="compact"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="txt">
+        <div class="name">颜色分级阈值</div>
+        <div class="hint">IF 达到对应数值时的颜色：红 / 橙 / 黄 / 绿。须按从大到小填写</div>
+        <div class="thres">
+          <div><label>红</label><input type="number" id="t0" min="0" step="0.1"></div>
+          <div><label>橙</label><input type="number" id="t1" min="0" step="0.1"></div>
+          <div><label>黄</label><input type="number" id="t2" min="0" step="0.1"></div>
+          <div><label>绿</label><input type="number" id="t3" min="0" step="0.1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>反馈</h2>
+    <div class="row">
+      <div class="txt">
+        <div class="name">缺失时提示反馈</div>
+        <div class="hint">详情页遇到查不到 IF 的期刊时，在旁边显示一个小问号，点一下就能反馈这本刊</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="hintMissing"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button class="primary" id="save">保存设置</button>
+    <button class="ghost" id="reset">恢复默认</button>
+    <span class="msg" id="msg"></span>
+  </div>
+
+  <footer>
+    设置只存在本机（chrome.storage.local），不上传。<br>
+    数据与反馈：<a href="https://pubmed-if-tag.pages.dev/" target="_blank">pubmed-if-tag.pages.dev</a>
+  </footer>
+</div>
+<script src="data/settings.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

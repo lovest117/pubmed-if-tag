@@ -33,16 +33,16 @@ $stage = Join-Path $env:TEMP "pif-build-$ver"
 if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
-$files = @("manifest.json", "content.js", "content.css", "popup.html", "popup.js")
+$files = @("manifest.json", "content.js", "content.css", "popup.html", "popup.js", "options.html", "options.js")
 foreach ($f in $files) { Copy-Item -LiteralPath (Join-Path $Root $f) -Destination $stage }
 Copy-Item -LiteralPath (Join-Path $Root "data") -Destination (Join-Path $stage "data") -Recurse
 Copy-Item -LiteralPath (Join-Path $Root "icons") -Destination (Join-Path $stage "icons") -Recurse
 
 # 干净副本里不该出现的仓库文档/脚本
-$expect = @("manifest.json", "content.js", "content.css", "popup.html", "popup.js")
+$expect = @("manifest.json", "content.js", "content.css", "popup.html", "popup.js", "options.html", "options.js")
 $got = @(Get-ChildItem -LiteralPath $stage -Recurse -File | ForEach-Object { $_.Name })
-$allowed = @("manifest.json", "content.js", "content.css", "popup.html", "popup.js",
-             "journal-if.js", "library.js", "icon16.png", "icon48.png", "icon128.png")
+$allowed = @("manifest.json", "content.js", "content.css", "popup.html", "popup.js", "options.html", "options.js",
+             "journal-if.js", "library.js", "settings.js", "icon16.png", "icon48.png", "icon128.png")
 $extra = $got | Where-Object { $allowed -notcontains $_ }
 if ($extra) { throw "打包目录含多余文件：$($extra -join ', ')" }
 Write-Output ("  文件清单：" + $got.Count + " 个")

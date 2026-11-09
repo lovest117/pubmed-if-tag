@@ -1,46 +1,32 @@
 name: 问题反馈
-description: 标签没显示、位置错乱、更新失败等
+description: 标签没显示、位置错乱、更新失败等，一句话就够
 title: "[问题] "
 labels: ["bug"]
 body:
-  - type: input
-    id: page
+  - type: markdown
     attributes:
-      label: 出问题的页面链接
-      description: PubMed 搜索页或某篇文章的 URL
-      placeholder: https://pubmed.ncbi.nlm.nih.gov/?term=...
-    validations:
-      required: true
-  - type: dropdown
-    id: where
-    attributes:
-      label: 出现在哪类页面
-      options:
-        - 搜索结果页
-        - 文章详情页
-        - 两者都有
-        - 插件弹窗
-    validations:
-      required: true
+      value: |
+        一句话说清现象就行，截图直接拖到下面的输入框里。
+        其它信息（插件版本、浏览器）如果不知道可以留空。
   - type: textarea
     id: what
     attributes:
-      label: 具体现象
-      description: 例如「Neuron. 2023 后面没有 IF 标签」「标签插到了作者名后面」
-      placeholder: Neuron. 2023 Oct 4;111(19):3124-3138. 后面没有徽章，但库里有 neuron
+      label: 发生了什么
+      description: 例如「Neuron. 2023 后面没有 IF 标签」「弹出更新失败」
+      placeholder: Neuron. 2023 后面没标签，刷新几次也一样
     validations:
       required: true
-  - type: textarea
-    id: shot
+  - type: input
+    id: page
     attributes:
-      label: 截图
-      description: 直接把截图拖进来即可
+      label: 相关页面链接（可选）
+      placeholder: https://pubmed.ncbi.nlm.nih.gov/37167965/
     validations:
       required: false
   - type: input
-    id: env
+    id: shot
     attributes:
-      label: 浏览器与版本
-      placeholder: Edge 130 / Chrome 131，Windows 11
+      label: 截图（可选）
+      description: 直接把图片拖进来，或粘贴
     validations:
       required: false

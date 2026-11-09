@@ -8,10 +8,26 @@
 
   // 当前生效的期刊库；启动时会用本地存储里的更新数据覆盖内置库
   let DB = window.JOURNAL_IF_DB || {};
+  // 用户设置，启动时从 storage 读取；未读到则用默认值
+  let SETTINGS = null;
+  const REPO = 'lovest117/pubmed-if-tag';
   const RUNTIME = {
     processed: new WeakSet(),
     observer: null,
   };
+
+  const FALLBACK_SETTINGS = {
+    showSearch: true,
+    showDetail: true,
+    showQuartile: true,
+    compact: false,
+    hintMissing: true,
+    thresholds: [20, 10, 5, 2],
+  };
+
+  function cfg() {
+    return SETTINGS || FALLBACK_SETTINGS;
+  }
 
   // ========== 工具函数 ==========
 
@@ -86,16 +102,17 @@
   }
 
   /**
-   * 根据IF值返回颜色和标签
+   * 根据IF值返回颜色和标签；阈值可在设置页调整
    */
   function getIFColors(ifValue) {
+    const t = cfg().thresholds;
     let color = '#94a3b8'; // 文字色
     let bg = '#f1f5f9';    // 浅底色（用于高亮和badge背景）
     let hl = '#f8fafc';    // 高亮背景（更淡一点）
-    if (ifValue >= 20) { color = '#b91c1c'; bg = '#fef2f2'; hl = '#fee2e2'; }
-    else if (ifValue >= 10) { color = '#c2410c'; bg = '#fff7ed'; hl = '#ffedd5'; }
-    else if (ifValue >= 5) { color = '#b45309'; bg = '#fffbeb'; hl = '#fef3c7'; }
-    else if (ifValue >= 2) { color = '#15803d'; bg = '#f0fdf4'; hl = '#dcfce7'; }
+    if (ifValue >= t[0]) { color = '#b91c1c'; bg = '#fef2f2'; hl = '#fee2e2'; }
+    else if (ifValue >= t[1]) { color = '#c2410c'; bg = '#fff7ed'; hl = '#ffedd5'; }
+    else if (ifValue >= t[2]) { color = '#b45309'; bg = '#fffbeb'; hl = '#fef3c7'; }
+    else if (ifValue >= t[3]) { color = '#15803d'; bg = '#f0fdf4'; hl = '#dcfce7'; }
     else if (ifValue > 0) { color = '#64748b'; bg = '#f8fafc'; hl = '#f1f5f9'; }
     return { color, bg, hl };
   }
@@ -133,18 +150,20 @@
     badge.className = 'pifh-if-badge';
     badge.dataset.pifhBadge = 'true';
     const { color, bg } = getIFColors(ifInfo.if);
-    const qLabel = ifInfo.q ? ` <span style="opacity:0.7">(${ifInfo.q})</span>` : '';
+    const compact = !!cfg().compact;
+    const qLabel = (cfg().showQuartile && ifInfo.q)
+      ? ` <span style="opacity:0.7">(${ifInfo.q})</span>` : '';
     badge.innerHTML = `IF <strong>${ifInfo.if}</strong>${qLabel}`;
     badge.style.cssText = `
       display: inline-block;
-      margin-left: 6px;
-      padding: 1px 7px;
-      border-radius: 10px;
-      font-size: 11px;
+      margin-left: ${compact ? 4 : 6}px;
+      padding: ${compact ? '0 4px' : '1px 7px'};
+      border-radius: ${compact ? 4 : 10}px;
+      font-size: ${compact ? 10 : 11}px;
       font-weight: 500;
       color: ${color};
-      background: ${bg};
-      border: 1px solid ${color}33;
+      background: ${compact ? 'transparent' : bg};
+      border: 1px solid ${color}${compact ? '55' : '33'};
       vertical-align: middle;
       cursor: pointer;
       white-space: nowrap;
@@ -174,6 +193,45 @@
     });
 
     return badge;
+  }
+
+  /**
+   * 判断一段文本是否像期刊名，用于决定要不要给反馈入口，避免在作者名旁冒出问号
+   */
+  function looksLikeJournal(text) {
+    const s = String(text || '').trim();
+    if (s.length < 3 || s.length > 60) return false;
+    if (!/^[A-Z][A-Za-z0-9&.\- ]*$/.test(s)) return false;
+    if (s.split(/\s+/).length > 7) return false;
+    return true;
+  }
+
+  function currentPmid() {
+    const m = String(location.pathname).match(/\/(\d+)\/?$/);
+    return m ? m[1] : '';
+  }
+
+  /**
+   * 库中查不到时的小问号：点一下打开带预填内容的反馈页，用户不用手打刊名
+   */
+  function createFeedbackBadge(journal, pmid) {
+    const el = document.createElement('span');
+    el.className = 'pifh-missing';
+    el.dataset.pifhMissing = 'true';
+    el.textContent = '?';
+    el.title = '期刊库未收录「' + journal + '」，点这里反馈';
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const title = '[期刊未收录] ' + journal;
+      const body = '### 期刊名称\n' + journal + '\n\n' +
+        (pmid ? '### 文献链接\nhttps://pubmed.ncbi.nlm.nih.gov/' + pmid + '/\n\n' : '') +
+        '（以上由插件自动填入，无需补充其它信息）\n';
+      const url = 'https://github.com/' + REPO + '/issues/new?title=' +
+        encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
+      window.open(url, '_blank', 'noopener');
+    });
+    return el;
   }
 
   /**
@@ -325,9 +383,16 @@
         // 去掉末尾的点
         const cleanText = text.replace(/\.+$/, '').trim();
         const ifInfo = lookupIF(cleanText);
-        if (!ifInfo) continue;
-
-        console.log('[Pubmed IF Tag][详情页] 在short-citation找到期刊:', cleanText, 'IF=' + ifInfo.if);
+        if (!ifInfo) {
+          // 查不到：只有像期刊名时才给一个问号，且每个引用容器最多一个，避免满屏提示
+          if (cfg().hintMissing &&
+              looksLikeJournal(cleanText) &&
+              !citEl.querySelector('[data-pifh-missing]')) {
+            const ask = createFeedbackBadge(cleanText, currentPmid());
+            node.parentNode.insertBefore(ask, node.nextSibling);
+          }
+          continue;
+        }
 
         const { hl, color } = getIFColors(ifInfo.if);
 
@@ -392,17 +457,16 @@
    */
   function processPage() {
     const url = window.location.href;
-    console.log('[Pubmed IF Tag] processPage, URL:', url);
-    if (url.includes('/?') || url.match(/pubmed\.ncbi\.nlm\.nih\.gov\/$/)) {
-      console.log('[Pubmed IF Tag] 判断为搜索结果页');
-      processSearchResultsPage();
-    } else if (url.match(/\/\d+\/$/)) {
-      console.log('[Pubmed IF Tag] 判断为文章详情页');
-      processArticleDetailPage();
+    const isSearch = url.includes('/?') || /pubmed\.ncbi\.nlm\.nih\.gov\/$/.test(url);
+    const isDetail = /\/\d+\/$/.test(url);
+    if (isSearch) {
+      if (cfg().showSearch) processSearchResultsPage();
+    } else if (isDetail) {
+      if (cfg().showDetail) processArticleDetailPage();
     } else {
-      console.log('[Pubmed IF Tag] URL类型不明确，两个都试');
-      processSearchResultsPage();
-      processArticleDetailPage();
+      // URL 类型不明确时，按用户开关各试一次
+      if (cfg().showSearch) processSearchResultsPage();
+      if (cfg().showDetail) processArticleDetailPage();
     }
   }
 
@@ -455,8 +519,27 @@
     console.log('[Pubmed IF Tag] 已加载内置库，期刊数: ' + Object.keys(DB).length);
   }
 
+  async function loadSettings() {
+    try {
+      if (window.PIFSettings && window.PIFSettings.get) {
+        SETTINGS = await window.PIFSettings.get();
+      }
+    } catch (err) {
+      console.warn('[Pubmed IF Tag] 读取设置失败，使用默认值', err);
+      SETTINGS = FALLBACK_SETTINGS;
+    }
+  }
+
   async function init() {
+    await loadSettings();
     await loadActiveLibrary();
+
+    // 设置改动后不重建已标注的节点（避免闪烁），只提示用户刷新
+    if (window.PIFSettings && window.PIFSettings.onChange) {
+      window.PIFSettings.onChange(function (next) {
+        SETTINGS = next;
+      });
+    }
 
     // 等DOM加载完成
     if (document.readyState === 'loading') {

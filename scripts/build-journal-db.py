@@ -241,7 +241,7 @@ for k, v in new.items():
 print('JCR 条目中已在库内 %d 条（其中 %d 条数值有变）· 全新收录 %d 条 · 合计 %d 条'
       % (len(pre_existing), len(changed), len(new) - len(pre_existing), len(merged)))
 
-// 备份到仓库外的临时目录，避免污染扩展目录（release.ps1 会校验打包文件清单）
+# 备份到仓库外的临时目录，避免污染扩展目录（release.ps1 会校验打包文件清单）
 backup = os.path.join(tempfile.gettempdir(), 'pif-journal-if.bak')
 shutil.copyfile(DB, backup)
 

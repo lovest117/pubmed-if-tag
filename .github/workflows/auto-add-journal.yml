@@ -1,6 +1,7 @@
 name: 自动补录期刊
 
-# 有人在仓库提交「期刊未收录」反馈时，自动解析并写入期刊库
+# 任何人提交「期刊未收录」反馈都会触发；IF 与分区一律由脚本查 JCR 索引决定，
+# 用户填的内容不参与写库，所以放开提交者限制也不会污染数据。
 on:
   issues:
     types: [opened]
@@ -9,23 +10,27 @@ permissions:
   contents: write
   issues: write
 
+# 同一时间只跑一个，避免两条反馈同时改 data/journal-if.js 产生冲突
+concurrency:
+  group: auto-add-journal
+  cancel-in-progress: false
+
 jobs:
   auto-add:
     runs-on: ubuntu-latest
-    # 只自动处理仓库所有者本人提交的反馈，避免他人写入公共数据
-    if: github.event.issue.user.login == github.repository_owner
+    if: contains(github.event.issue.title, '期刊') || contains(github.event.issue.body, '期刊名称') || contains(github.event.issue.labels.*.name, 'journal')
     steps:
       - name: 检出仓库
         uses: actions/checkout@v4
 
-      - name: 解析 Issue 并写入期刊库
+      - name: 解析期刊名并查表补录
         id: parse
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: python3 scripts/add_journal_from_issue.py
 
       - name: 提交变更
-        if: steps.parse.outputs.key != ''
+        if: steps.parse.outputs.status == 'added'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -33,19 +38,33 @@ jobs:
           git commit -m "自动补录期刊：${{ steps.parse.outputs.name }} (IF ${{ steps.parse.outputs.if }} ${{ steps.parse.outputs.q }})"
           git push
 
-      - name: 回复成功
-        if: steps.parse.outputs.key != ''
+      - name: 回复并关闭（已补录）
+        if: steps.parse.outputs.status == 'added'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MSG: ${{ steps.parse.outputs.reason }}
         run: |
-          gh issue comment "${{ github.event.issue.number }}" \
-            --body "已自动补录 **${{ steps.parse.outputs.name }}**（IF ${{ steps.parse.outputs.if }}，${{ steps.parse.outputs.q }}）。在插件弹窗点一次「一键更新 IF 库」即可拿到这条数据。"
+          gh issue comment "${{ github.event.issue.number }}" --body "$MSG
+
+          在插件弹窗点一次「更新期刊数据」即可拿到这条，不用重新安装。"
           gh issue close "${{ github.event.issue.number }}"
 
-      - name: 回复解析失败
-        if: steps.parse.outputs.key == ''
+      - name: 回复并关闭（已有 / 不在收录范围）
+        if: steps.parse.outputs.status == 'exists' || steps.parse.outputs.status == 'out_of_scope'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MSG: ${{ steps.parse.outputs.reason }}
         run: |
-          gh issue comment "${{ github.event.issue.number }}" \
-            --body "没能自动解析这条反馈。请确认 Issue 里保留了模板的四个字段名，且期刊缩写、IF、分区都填了（分区为 Q1-Q4）。也可以直接编辑 data/journal-if.js 提交。"
+          gh issue comment "${{ github.event.issue.number }}" --body "$MSG"
+          gh issue close "${{ github.event.issue.number }}"
+
+      - name: 转人工（查不到，需核对）
+        if: steps.parse.outputs.status == 'miss'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MSG: ${{ steps.parse.outputs.reason }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --body "$MSG
+
+          作者有空会人工核对这本刊的正式缩写与分区。"
+          gh issue edit "${{ github.event.issue.number }}" --add-label "needs-review" || true

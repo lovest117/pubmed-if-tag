@@ -19,15 +19,18 @@
   var statusEl = $('updateStatus');
   var btnUpdate = $('btnUpdate');
   var btnReset = $('btnReset');
+  var btnSettings = $('btnSettings');
   var countEl = $('journalCount');
   var linkGithub = $('linkGithub');
   var linkFeedback = $('linkFeedback');
-  var linkSuggest = $('linkSuggest');
   var verEl = $('verText');
+  var newVerEl = $('newVer');
 
-  // 版本号从 manifest 读，避免写死后过期；读不到就整段不显示，不留多余分隔符
+  var myVersion = '';
   try {
-    verEl.textContent = 'v' + chrome.runtime.getManifest().version + ' · ';
+    myVersion = chrome.runtime.getManifest().version;
+    verEl.textContent = 'v' + myVersion;
+    verEl.title = '点击检查新版本';
   } catch (err) {
     verEl.textContent = '';
   }
@@ -44,15 +47,14 @@
     statusEl.textContent = text;
   }
 
-  // 只刷新数量显示，不动状态文案：主数字显示当前生效条数，内置/远程的构成放 tooltip
+  // 主数字显示当前生效条数；内置/远程的构成放 tooltip，不在界面上堆两个数字
   function showCounts(active) {
     var n = Object.keys(active.entries || {}).length;
-    var builtinN = active.builtinCount || 0;
+    var bIn = active.builtinCount || 0;
     var remoteN = active.remoteCount || 0;
     countEl.textContent = n + ' 种';
-    // 右上角只说数据构成，条数已经在统计区显示，避免重复
     libInfo.textContent = remoteN > 0 ? '远程补充' : '内置库';
-    libInfo.title = '内置 ' + builtinN + ' 种' +
+    libInfo.title = '内置 ' + bIn + ' 种' +
       (remoteN > 0 ? ' · 远程补充 ' + remoteN + ' 种' : '');
   }
 
@@ -70,10 +72,78 @@
     }
   }
 
-  // 反馈入口指向主页的对应区块，页面里再跳 GitHub Issue（带模板）
+  if (btnSettings) {
+    btnSettings.addEventListener('click', function () {
+      if (chrome.runtime.openOptionsPage) {
+        chrome.runtime.openOptionsPage();
+      } else {
+        window.open('options.html');
+      }
+    });
+  }
+
+  // 反馈统一收口到主页的反馈区块，弹窗只留一个入口
   if (linkGithub) linkGithub.href = 'https://github.com/' + REPO;
   if (linkFeedback) linkFeedback.href = SITE + '/#feedback';
-  if (linkSuggest) linkSuggest.href = SITE + '/#suggest';
+
+  function cmpVersion(a, b) {
+    var pa = String(a).split('.');
+    var pb = String(b).split('.');
+    for (var i = 0; i < Math.max(pa.length, pb.length); i++) {
+      var x = parseInt(pa[i], 10) || 0;
+      var y = parseInt(pb[i], 10) || 0;
+      if (x > y) return 1;
+      if (x < y) return -1;
+    }
+    return 0;
+  }
+
+  // 版本检查只在用户主动点版本号时发起，不做后台自检，也不弹任何提示框
+  var checkBusy = false;
+
+  async function checkUpdate() {
+    if (!myVersion || checkBusy) return;
+    checkBusy = true;
+    var saved = verEl.textContent;
+    verEl.textContent = '检查中...';
+
+    var remote = '';
+    try {
+      var resp = await fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
+        { cache: 'no-store' });
+      if (resp.ok) {
+        var json = await resp.json();
+        remote = String((json && (json.tag_name || json.name)) || '')
+          .replace(/^v/i, '').trim();
+      }
+    } catch (e) {
+      // 网络不通时按"无法检查"处理，不打扰
+    }
+
+    verEl.textContent = saved;
+    checkBusy = false;
+    newVerEl.textContent = '';
+
+    if (!remote) {
+      newVerEl.textContent = ' · 无法检查更新';
+      setTimeout(function () { newVerEl.textContent = ''; }, 3000);
+      return;
+    }
+    if (cmpVersion(remote, myVersion) <= 0) {
+      newVerEl.textContent = ' · 已是最新';
+      setTimeout(function () { newVerEl.textContent = ''; }, 3000);
+      return;
+    }
+
+    var a = document.createElement('a');
+    a.href = SITE;
+    a.target = '_blank';
+    a.textContent = '有新版本 v' + remote + ' →';
+    newVerEl.textContent = ' · ';
+    newVerEl.appendChild(a);
+  }
+
+  if (verEl) verEl.addEventListener('click', checkUpdate);
 
   btnUpdate.addEventListener('click', async function () {
     btnUpdate.disabled = true;
@@ -100,7 +170,7 @@
         '。可点下方「打开 GitHub」手动查看最新数据。', 'err');
     } finally {
       btnUpdate.disabled = false;
-      btnUpdate.textContent = '一键更新 IF 库';
+      btnUpdate.textContent = '更新期刊数据';
     }
   });
 

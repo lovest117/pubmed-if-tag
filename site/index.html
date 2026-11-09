@@ -71,6 +71,27 @@
   footer{padding:26px 0 40px;font-size:12.5px;color:#8a99a8}
   footer a{color:var(--sub)}
   a{color:var(--brand)}
+  /* 反馈区：三个 tab 共用一个面板，降低填表负担 */
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .tab{
+    font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
+    padding:8px 16px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;color:var(--sub);transition:.15s;
+  }
+  .tab:hover{border-color:#b9c6d6;color:var(--ink)}
+  .tab.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+  .panel.active{display:block}
+  .panel label{display:block;font-size:12.5px;color:var(--sub);margin:0 0 5px}
+  .panel input,.panel textarea{
+    width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin-bottom:12px;
+    background:#fff;
+  }
+  .panel input:focus,.panel textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .panel textarea{resize:vertical;line-height:1.6}
+  .panel .hint{font-size:12.5px;color:#8a99a8;margin:10px 0 0}
+  .panel .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 </style>
 </head>
 <body>
@@ -83,12 +104,12 @@
       ScholarScope 的免费替代，内置 3374 本期刊（医学与生命科学类 Q1–Q2 全收录），数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
     </p>
     <div class="btns">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.0.8.zip">下载扩展（zip）</a>
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.0.9.zip">下载扩展（zip）</a>
       <a class="btn btn-ghost" href="#feedback">反馈无 IF 标签的期刊</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
     </div>
-    <p class="meta">版本 1.0.8 · 数据来源 Clarivate JCR 2023（2024 年 6 月发布）· MIT 许可</p>
+    <p class="meta">版本 1.0.9 · 数据来源 Clarivate JCR 2023（2024 年 6 月发布）· MIT 许可</p>
   </div>
 </header>
 
@@ -113,8 +134,8 @@
         <span class="badge lv2">IF 4.9 · Q1</span>
       </div>
       <div class="demo-line">
-        <span class="hl lv0">South Med J. 2021</span>
-        <span class="badge lv0">IF 1.8 · Q3</span>
+        <span class="hl lv2">Front Neurol. 2023</span>
+        <span class="badge lv0">IF 2.7 · Q2</span>
       </div>
     </div>
     <div class="legend">
@@ -149,7 +170,11 @@
       </div>
       <div class="card">
         <h3>反馈缺失期刊</h3>
-        <p>遇到没有标签的期刊，点「反馈缺失期刊」把期刊名、IF、分区提交，作者补进库后更新一次即可生效。</p>
+        <p>详情页遇到库里没有的期刊，会冒出一个小问号；点一下就把刊名带进反馈页，不用手打。IF 与分区由系统查表补。</p>
+      </div>
+      <div class="card">
+        <h3>可按需调设置</h3>
+        <p>弹窗右上角「设置」里可以关掉搜索页或详情页的标注、隐藏分区、改 IF 颜色阈值、切换紧凑样式。</p>
       </div>
       <div class="card">
         <h3>点击徽章复制</h3>
@@ -157,7 +182,7 @@
       </div>
       <div class="card">
         <h3>隐私</h3>
-        <p>只有点击更新时才联网。期刊库与设置都存在 <code>chrome.storage.local</code>，不采集、不上传。</p>
+        <p>只有你点更新或点版本号检查时才联网。期刊库与设置都存在 <code>chrome.storage.local</code>，不采集、不上传。</p>
       </div>
     </div>
   </div>
@@ -165,47 +190,51 @@
 
 <section id="feedback">
   <div class="wrap">
-    <h2>反馈无 IF 标签的期刊</h2>
-    <p class="lead">某本期刊在 PubMed 上没出标签，多半是期刊库还没收录它。提交后由仓库的 GitHub Actions 自动写进数据文件并关闭 Issue，你回插件弹窗点一次「一键更新 IF 库」就能拿到，不用等人处理。</p>
-    <div class="grid">
-      <div class="card">
-        <h3>需要填的 4 项</h3>
-        <p>期刊缩写（PubMed 上显示的写法，如 <code>Nat Commun</code>）· 影响因子 IF（如 <code>14.7</code>）· JCR 分区（Q1–Q4）· 文献链接或 PMID。</p>
-        <p style="margin-top:8px">四项缺任何一项，自动入库会失败，只能转人工。</p>
-      </div>
-      <div class="card">
-        <h3>去提交</h3>
-        <p>点按钮打开 GitHub 的 Issue 表单，字段已经列好，填完提交即可。这一步需要能访问 GitHub。</p>
-        <p style="margin-top:12px"><a class="btn btn-primary" href="https://github.com/lovest117/pubmed-if-tag/issues/new?template=journal-missing.yml" target="_blank" rel="noopener">打开期刊反馈表单</a></p>
-      </div>
-      <div class="card">
-        <h3>查不到 IF 和分区</h3>
-        <p>期刊主页通常会标 Impact Factor，分区看 JCR 的 Quartile。实在查不到，先把缩写和文献链接提交，注明「待补 IF」，会由人工补录。</p>
-      </div>
-    </div>
-  </div>
-</section>
+    <h2>反馈</h2>
+    <p class="lead">按一句话说清楚就行。期刊没标签的，只填刊名 —— IF 和分区系统会自己从 JCR 表里查，不用你去查。</p>
 
-<section id="suggest">
-  <div class="wrap">
-    <h2>功能建议与问题反馈</h2>
-    <p class="lead">标签位置不对、某类页面没生效、想要五年 IF 或数据导出 —— 都可以提。</p>
-    <div class="grid">
-      <div class="card">
-        <h3>提功能建议</h3>
-        <p>说清楚你想解决的使用场景，比只写「加个功能」更容易被做出来。</p>
-        <p style="margin-top:12px"><a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/issues/new?template=feature-request.yml" target="_blank" rel="noopener">提交功能建议</a></p>
-      </div>
-      <div class="card">
-        <h3>报告问题</h3>
-        <p>附上 PubMed 链接和截图最有效；若是标签错位，注明是搜索页还是详情页。</p>
-        <p style="margin-top:12px"><a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/issues/new?template=bug-report.yml" target="_blank" rel="noopener">报告问题</a></p>
-      </div>
-      <div class="card">
-        <h3>直接改代码</h3>
-        <p>期刊数据在 <code>data/journal-if.js</code>，格式是 <code>"缩写": { if: 数值, q: "Q1" }</code>，加一条提 PR 同样会被合并。</p>
-      </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="journal">期刊没标签</button>
+      <button class="tab" data-tab="idea">功能建议</button>
+      <button class="tab" data-tab="bug">报告问题</button>
     </div>
+
+    <div class="panel active" id="panel-journal">
+      <label for="journalName">期刊名称</label>
+      <input id="journalName" placeholder="Nat Commun（PubMed 引用行里怎么写就怎么填，全称也行）">
+      <label for="journalLink">文献链接或 PMID（可选）</label>
+      <input id="journalLink" placeholder="https://pubmed.ncbi.nlm.nih.gov/41253842/">
+      <button class="btn btn-primary" id="sendJournal">提交</button>
+      <p class="hint">提交后机器人会直接查表写进期刊库，你回插件点一次「更新期刊数据」就能拿到。</p>
+    </div>
+
+    <div class="panel" id="panel-idea">
+      <label for="ideaText">你的想法</label>
+      <textarea id="ideaText" rows="4" placeholder="希望标签里带五年影响因子"></textarea>
+      <button class="btn btn-primary" id="sendIdea">提交</button>
+    </div>
+
+    <div class="panel" id="panel-bug">
+      <label for="bugText">发生了什么</label>
+      <textarea id="bugText" rows="4" placeholder="Neuron. 2023 后面没有 IF 标签，刷新几次也一样"></textarea>
+      <div class="row2">
+        <div>
+          <label for="bugPage">页面链接（可选）</label>
+          <input id="bugPage" placeholder="https://pubmed.ncbi.nlm.nih.gov/37167965/">
+        </div>
+        <div>
+          <label for="bugVer">插件版本（可选）</label>
+          <input id="bugVer" placeholder="v1.0.9">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="sendBug">提交</button>
+      <p class="hint">提交会打开 GitHub 的新建 Issue 页，截图在那一步直接拖进去即可（网页无法代为上传图片）。</p>
+    </div>
+
+    <p class="meta" style="margin-top:14px">
+      三步都需要 GitHub 账号，且国内直连 GitHub 可能不畅。打不开时可以把内容发到
+      <a href="https://github.com/lovest117/pubmed-if-tag">仓库</a> 的任意渠道，或直接在插件里点问号反馈。
+    </p>
   </div>
 </section>
 
@@ -226,17 +255,22 @@
   </div>
 </section>
 
-<section>
+<section id="privacy">
   <div class="wrap">
     <h2>权限与隐私</h2>
+    <p class="lead">这一节就是完整的隐私说明，商店审核与用户核对都以它为准。</p>
     <table>
-      <tr><th>storage</th><td>保存更新后的期刊库与更新记录，仅本机可见。</td></tr>
-      <tr><th>api.github.com</th><td>点击「一键更新 IF 库」时读取仓库里的期刊数据文件。</td></tr>
+      <tr><th>storage</th><td>保存更新后的期刊库、你的显示设置与更新记录，仅本机可见，卸载即清除。</td></tr>
+      <tr><th>api.github.com</th><td>点「更新期刊数据」或点版本号检查更新时，读取仓库里的期刊数据文件或版本号。</td></tr>
       <tr><th>cdn.jsdelivr.net</th><td>同上，作为备用数据源（GitHub 直连不稳定时使用）。</td></tr>
       <tr><th>raw.githubusercontent.com</th><td>同上，第三个备用源。</td></tr>
-      <tr><th>pubmed.ncbi.nlm.nih.gov</th><td>只在 PubMed 页面上读取页面里的期刊名与年份，用于匹配标签，不修改页面以外的任何内容。</td></tr>
+      <tr><th>pubmed.ncbi.nlm.nih.gov</th><td>只在 PubMed 页面上读取页面里的期刊名与年份，用于匹配标签；不修改页面以外的任何内容。</td></tr>
     </table>
-    <p class="meta" style="margin-top:12px">不申请 <code>tabs</code>、<code>history</code>、<code>webRequest</code> 等权限，不读取你的搜索历史和浏览记录。</p>
+    <p class="meta" style="margin-top:12px">
+      不申请 <code>tabs</code>、<code>history</code>、<code>webRequest</code>、<code>cookies</code> 等权限，
+      不读取搜索历史与浏览记录，不嵌入任何统计或广告脚本，不向任何服务器发送你的使用数据。
+      反馈由你主动在 GitHub 或本页提交，内容仅包含你填写的期刊名或问题描述。
+    </p>
   </div>
 </section>
 
@@ -249,10 +283,10 @@
     </details>
     <details>
       <summary>某个期刊没有 IF 标签</summary>
-      <p>说明库里还没收录，或者 PubMed 显示的缩写与库里写法不一致。点插件图标 →「反馈缺失期刊」，填上期刊缩写、IF 和分区（Q1–Q4），作者补录后你在弹窗点一次「一键更新 IF 库」就能拿到。</p>
+      <p>说明库里还没收录，或者 PubMed 显示的缩写与库里写法不一致。点插件图标 →「反馈与建议」，只填刊名就行 —— IF 和分区由系统从 JCR 表自动查，补录后你在弹窗点一次「更新期刊数据」就能拿到。</p>
     </details>
     <details>
-      <summary>点「一键更新 IF 库」没反应或报错</summary>
+      <summary>点「更新期刊数据」没反应或报错</summary>
       <p>更新需要访问 GitHub。如果网络受限，可以改用「打开 GitHub（手动更新）」到仓库页面自行查看 <code>data/journal-if.js</code>，或在本页重新下载最新 zip 覆盖解压目录，再到扩展页点刷新。任何情况下都不会影响已有标签显示。</p>
     </details>
     <details>
@@ -269,12 +303,80 @@
 <footer>
   <div class="wrap">
     Pubmed IF Tag · MIT License · 仅用于个人文献筛选，不提供任何形式的期刊评价结论<br>
-    <a href="#feedback">期刊反馈</a> ·
-    <a href="#suggest">功能建议</a> ·
+    <a href="#feedback">反馈</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag">GitHub</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
   </div>
 </footer>
+
+<script>
+(function () {
+  var REPO = 'lovest117/pubmed-if-tag';
+
+  function openIssue(title, body) {
+    var url = 'https://github.com/' + REPO + '/issues/new?title=' +
+      encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
+    window.open(url, '_blank', 'noopener');
+  }
+
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function need(el) {
+    if (!el) return false;
+    el.style.borderColor = '#dc2626';
+    el.focus();
+    setTimeout(function () { el.style.borderColor = ''; }, 2500);
+    return false;
+  }
+
+  // 三个 tab
+  var tabs = [].slice.call(document.querySelectorAll('.tab'));
+  var panels = [].slice.call(document.querySelectorAll('.panel'));
+
+  function select(name) {
+    tabs.forEach(function (t) { t.classList.toggle('active', t.dataset.tab === name); });
+    panels.forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + name); });
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () { select(t.dataset.tab); });
+  });
+
+  // 允许用 ?tab=idea 直达对应面板
+  var q = (location.search.match(/tab=([a-z]+)/) || [])[1];
+  if (q && document.getElementById('panel-' + q)) select(q);
+
+  document.getElementById('sendJournal').addEventListener('click', function () {
+    var name = val('journalName');
+    if (!name) return need(document.getElementById('journalName'));
+    var link = val('journalLink');
+    var body = '### 期刊名称\n' + name + '\n\n' +
+      (link ? '### 文献链接\n' + link + '\n\n' : '') +
+      '（由主页表单填入）\n';
+    openIssue('[期刊未收录] ' + name, body);
+  });
+
+  document.getElementById('sendIdea').addEventListener('click', function () {
+    var idea = val('ideaText');
+    if (!idea) return need(document.getElementById('ideaText'));
+    openIssue('[建议] ' + idea.slice(0, 40), '### 你的想法\n' + idea + '\n');
+  });
+
+  document.getElementById('sendBug').addEventListener('click', function () {
+    var what = val('bugText');
+    if (!what) return need(document.getElementById('bugText'));
+    var page = val('bugPage');
+    var ver = val('bugVer');
+    var body = '### 发生了什么\n' + what + '\n\n' +
+      (page ? '### 相关页面\n' + page + '\n\n' : '') +
+      (ver ? '### 插件版本\n' + ver + '\n\n' : '');
+    openIssue('[问题] ' + what.slice(0, 40), body);
+  });
+})();
+</script>
 
 </body>
 </html>
