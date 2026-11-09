@@ -1,0 +1,47 @@
+name: 期刊未收录（无 IF 标签）
+description: 某本期刊在 PubMed 上没出 IF 标签，申请补录进期刊库
+title: "[期刊未收录] "
+labels: ["journal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        填完直接提交即可。仓库的 GitHub Actions 会自动把它写进期刊库、提交并关闭本 Issue；
+        之后你在插件弹窗点一次「一键更新 IF 库」就能拿到这条数据，不需要等人处理。
+
+        四项字段缺任何一项都会自动入库失败，只能转人工，请尽量填全。
+  - type: input
+    id: journal
+    attributes:
+      label: 期刊缩写（如 Nat Commun）
+      description: 填 PubMed 引用行里显示的写法，末尾不要带句号
+      placeholder: Nat Commun
+    validations:
+      required: true
+  - type: input
+    id: jif
+    attributes:
+      label: 影响因子 IF（如 14.7）
+      description: 只要数字，不要带「IF」字样
+      placeholder: "14.7"
+    validations:
+      required: true
+  - type: dropdown
+    id: quartile
+    attributes:
+      label: JCR 分区（Q1 / Q2 / Q3 / Q4）
+      options:
+        - Q1
+        - Q2
+        - Q3
+        - Q4
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: 文献链接或 PMID
+      description: 任一篇该期刊的文章链接，便于核对
+      placeholder: https://pubmed.ncbi.nlm.nih.gov/41253842/
+    validations:
+      required: false
