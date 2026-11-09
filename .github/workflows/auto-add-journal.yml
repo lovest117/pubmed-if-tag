@@ -29,7 +29,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Pubmed-IF-Tag/data/journal-if.js
+          git add data/journal-if.js
           git commit -m "自动补录期刊：${{ steps.parse.outputs.name }} (IF ${{ steps.parse.outputs.if }} ${{ steps.parse.outputs.q }})"
           git push
 

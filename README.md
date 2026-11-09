@@ -52,7 +52,7 @@ Front Neurol. 2024;15:1234567.           IF 3.3 (Q2)
 
 数据会依次从 GitHub API、jsDelivr CDN、GitHub Raw 三个地址拉取，任一成功即可；更新结果保存在本地，重启浏览器不丢失。点「恢复内置库」可丢弃更新内容，回到安装包自带的数据。
 
-> 更新源固定指向 `https://github.com/lovest117/pubmed-if-tag` 的 `Pubmed-IF-Tag/data/journal-if.js`。如果 fork 后自行维护数据，需同步修改 `data/library.js` 里的 `REMOTE_SOURCES` 地址。
+> 更新源固定指向 `https://github.com/lovest117/pubmed-if-tag` 的 `data/journal-if.js`。如果 fork 后自行维护数据，需同步修改 `data/library.js` 里的 `REMOTE_SOURCES` 地址。
 
 ## 数据来源
 
@@ -95,33 +95,46 @@ Front Neurol. 2024;15:1234567.           IF 3.3 (Q2)
 
 ## 文件结构
 
+仓库根就是扩展目录，`manifest.json` 在最外层——Edge/Chrome 的「加载解压缩的扩展」直接选这个文件夹。
+
 ```
-pubmed-if-tag/
-├── README.md              # 项目介绍
-├── INSTALL.md             # 安装使用说明
-├── LICENSE                # MIT 许可证
-├── site/                  # 插件主页（Cloudflare Pages 部署）
-│   ├── index.html         # 简介 / 功能 / 安装说明 / 下载
-│   └── download/          # 供主页直接下载的安装包
-├── scripts/               # 反馈自动入库脚本
-├── .github/workflows/     # Actions：解析 Issue 并补录期刊
-└── Pubmed-IF-Tag/         # 扩展源码
-    ├── manifest.json      # 扩展配置 (Manifest V3)
-    ├── content.js         # 核心注入脚本
-    ├── content.css        # 样式
-    ├── popup.html         # 点击图标弹出的设置页
-    ├── popup.js           # 弹窗逻辑（MV3 禁止内联脚本，必须独立文件）
-    ├── data/
-    │   ├── journal-if.js   # 内置期刊 IF 数据库
-    │   └── library.js      # 期刊库解析/合并/远程更新逻辑
-    └── icons/             # 扩展图标 (16/48/128)
+Pubmed-IF-Tag/
+├── manifest.json          # 扩展配置 (Manifest V3)
+├── content.js             # 核心注入脚本（含徽章点击复制）
+├── content.css            # 样式
+├── popup.html             # 点击图标弹出的设置页
+├── popup.js               # 弹窗逻辑（MV3 禁止内联脚本，必须独立文件）
+├── data/
+│   ├── journal-if.js      # 内置期刊 IF 数据库
+│   └── library.js         # 期刊库解析/合并/远程更新逻辑
+├── icons/                 # 扩展图标 (16/48/128)
+├── site/                  # 插件主页（Cloudflare Pages）
+│   ├── index.html
+│   └── download/          # 主页下载的最新安装包
+├── scripts/
+│   ├── release.ps1        # 一键打包 + 发版 + 部署
+│   └── add_journal_from_issue.py
+├── .github/
+│   ├── workflows/         # Issue → 自动补录期刊
+│   └── ISSUE_TEMPLATE/    # 期刊反馈 / 建议 / 问题 三张表单
+└── dist/                  # 本地打包产物（已 gitignore）
 ```
 
 `scripts/add_journal_from_issue.py` 与 `.github/workflows/auto-add-journal.yml` 负责把「反馈缺失期刊」的 Issue 自动补录进数据库。
 
+## 发版
+
+改完代码后升 `manifest.json` 的 `version`，然后跑：
+
+```powershell
+.\scripts\release.ps1
+```
+
+它会：用干净副本打包 → 生成带版本号的 `dist/Pubmed-IF-Tag-v{版本}.crx` 与 `site/download/Pubmed-IF-Tag-v{版本}.zip` → 校验 crx 内容 → 提交推送 → 建 GitHub Release 并上传两个资产 → 部署主页。加 `-SkipDeploy` 可跳过 Cloudflare 那一步。
+
 ## 主页部署
 
-线上地址 <https://pubmed-if-tag.pages.dev/>，站点源码在 `site/`。改完 `site/index.html` 或换下载包后执行：
+线上地址 <https://pubmed-if-tag.pages.dev/>，站点源码在 `site/`。只改站点不想发新版时执行：
 
 ```bash
 npx wrangler@4 pages deploy site --project-name=pubmed-if-tag --branch=main

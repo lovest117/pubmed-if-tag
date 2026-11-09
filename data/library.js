@@ -14,17 +14,17 @@
   const REMOTE_SOURCES = [
     {
       name: 'GitHub API',
-      url: 'https://api.github.com/repos/lovest117/pubmed-if-tag/contents/Pubmed-IF-Tag/data/journal-if.js?ref=main',
+      url: 'https://api.github.com/repos/lovest117/pubmed-if-tag/contents/data/journal-if.js?ref=main',
       type: 'github-api',
     },
     {
       name: 'jsDelivr CDN',
-      url: 'https://cdn.jsdelivr.net/gh/lovest117/pubmed-if-tag@main/Pubmed-IF-Tag/data/journal-if.js',
+      url: 'https://cdn.jsdelivr.net/gh/lovest117/pubmed-if-tag@main/data/journal-if.js',
       type: 'text',
     },
     {
       name: 'GitHub Raw',
-      url: 'https://raw.githubusercontent.com/lovest117/pubmed-if-tag/main/Pubmed-IF-Tag/data/journal-if.js',
+      url: 'https://raw.githubusercontent.com/lovest117/pubmed-if-tag/main/data/journal-if.js',
       type: 'text',
     },
   ];

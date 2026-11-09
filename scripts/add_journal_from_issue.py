@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# 从 Issue 内容解析期刊信息，追加到 Pubmed-IF-Tag/data/journal-if.js
+# 从 Issue 内容解析期刊信息，追加到 data/journal-if.js
 # 供 .github/workflows/auto-add-journal.yml 调用
 import os
 import re
 import sys
 
-DB_PATH = 'Pubmed-IF-Tag/data/journal-if.js'
+DB_PATH = 'data/journal-if.js'
 
 
 def pick_section(body, keywords):
