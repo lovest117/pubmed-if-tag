@@ -101,24 +101,43 @@
   // 版本检查只在用户主动点版本号时发起，不做后台自检，也不弹任何提示框
   var checkBusy = false;
 
+  // 主路径读主页上的 version.json：无速率限制、国内可访问，每次发版由 release.ps1 同步更新。
+  // 回退到 GitHub Release API —— 匿名调用有每小时 60 次的 IP 配额，撞上限会 403，
+  // 所以只能当备用，不能当主路径。
+  async function fetchRemoteVersion() {
+    try {
+      var r = await fetch(SITE + '/version.json', { cache: 'no-store' });
+      if (r.ok) {
+        var j = await r.json();
+        if (j && j.version) {
+          return { version: String(j.version).replace(/^v/i, '').trim(), zip: j.zip || '' };
+        }
+      }
+    } catch (e) {
+      // 走到回退
+    }
+    try {
+      var resp = await fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
+        { cache: 'no-store' });
+      if (resp.ok) {
+        var json = await resp.json();
+        var v = String((json && (json.tag_name || json.name)) || '')
+          .replace(/^v/i, '').trim();
+        if (v) return { version: v, zip: '' };
+      }
+    } catch (e) {
+      // 两个源都不通，按"无法检查"处理
+    }
+    return null;
+  }
+
   async function checkUpdate() {
     if (!myVersion || checkBusy) return;
     checkBusy = true;
     var saved = verEl.textContent;
     verEl.textContent = '检查中...';
 
-    var remote = '';
-    try {
-      var resp = await fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
-        { cache: 'no-store' });
-      if (resp.ok) {
-        var json = await resp.json();
-        remote = String((json && (json.tag_name || json.name)) || '')
-          .replace(/^v/i, '').trim();
-      }
-    } catch (e) {
-      // 网络不通时按"无法检查"处理，不打扰
-    }
+    var remote = await fetchRemoteVersion();
 
     verEl.textContent = saved;
     checkBusy = false;
@@ -129,19 +148,20 @@
       setTimeout(function () { newVerEl.textContent = ''; }, 3000);
       return;
     }
-    if (cmpVersion(remote, myVersion) <= 0) {
+    if (cmpVersion(remote.version, myVersion) <= 0) {
       newVerEl.textContent = ' · 已是最新';
       setTimeout(function () { newVerEl.textContent = ''; }, 3000);
       return;
     }
 
-    var zipUrl = SITE + '/download/Pubmed-IF-Tag-v' + remote + '.zip';
+    var zipName = remote.zip || ('Pubmed-IF-Tag-v' + remote.version + '.zip');
+    var zipUrl = SITE + '/download/' + zipName;
     var a = document.createElement('a');
     a.href = zipUrl;
     a.target = '_blank';
     a.rel = 'noopener';
-    a.textContent = '有新版本 v' + remote + ' ↓';
-    a.title = '点击下载 v' + remote + ' 安装包（解压覆盖原目录后到扩展页点刷新）';
+    a.textContent = '有新版本 v' + remote.version + ' ↓';
+    a.title = '点击下载 v' + remote.version + ' 安装包（解压覆盖原目录后到扩展页点刷新）';
     newVerEl.textContent = ' · ';
     newVerEl.appendChild(a);
 

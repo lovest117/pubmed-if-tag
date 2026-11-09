@@ -110,6 +110,14 @@ $zipOut = Join-Path $dlDir "$baseName.zip"
 Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zipOut -CompressionLevel Optimal
 Write-Output ("  zip：" + [math]::Round((Get-Item $zipOut).Length/1KB,1) + " KB → site/download")
 
+# 弹窗检查更新读这个文件（无速率限制、国内可访问）。
+# 必须和本次发版同步写入，否则线上会一直报旧版本号，用户点版本号看到的提示就是错的
+$verJson = ("{`n  `"version`": `"$ver`",`n  `"zip`": `"$baseName.zip`",`n  `"released`": `"" +
+  (Get-Date -Format 'yyyy-MM-dd') + "`"`n}`n")
+$utf8NoBom = New-Object Text.UTF8Encoding($false)
+[IO.File]::WriteAllText((Join-Path $Root "site\version.json"), $verJson, $utf8NoBom)
+Write-Output ("  version.json：" + $ver)
+
 Remove-Item -LiteralPath $profile -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
 
