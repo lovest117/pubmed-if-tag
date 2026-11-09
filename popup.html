@@ -14,21 +14,38 @@
   }
   .header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     margin-bottom: 14px;
     padding-bottom: 12px;
     border-bottom: 1px solid #e2e8f0;
   }
+  /* IF 图标本身就是主页入口：点一下打开简介与下载页 */
   .logo {
+    flex: 0 0 auto;
     width: 36px; height: 36px;
     background: linear-gradient(135deg, #2563eb, #7c3aed);
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    color: white; font-weight: 700; font-size: 14px;
+    color: #fff; font-weight: 700; font-size: 14px;
+    text-decoration: none;
+    transition: box-shadow .15s;
   }
-  .title { font-size: 15px; font-weight: 600; }
+  .logo:hover { box-shadow: 0 0 0 3px rgba(37, 99, 235, .18); }
+  .head-main { flex: 1; min-width: 0; }
+  .title-row { display: flex; align-items: baseline; gap: 6px; }
+  .title { font-size: 15px; font-weight: 600; white-space: nowrap; }
+  #verText {
+    font-size: 10px;
+    color: #94a3b8;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #verText:hover { color: #2563eb; }
   .subtitle { font-size: 11px; color: #64748b; margin-top: 2px; }
+  #newVer { font-size: 10px; color: #94a3b8; }
+  #newVer a { color: #2563eb; font-weight: 600; text-decoration: none; }
+  #newVer a:hover { text-decoration: underline; }
   .stats {
     background: white;
     border-radius: 8px;
@@ -50,21 +67,6 @@
     font-weight: 500;
   }
   .status-on { background: #dcfce7; color: #16a34a; }
-  .features {
-    background: white;
-    border-radius: 8px;
-    padding: 12px;
-    border: 1px solid #e2e8f0;
-    margin-bottom: 12px;
-  }
-  .features h3 { font-size: 12px; margin-bottom: 8px; color: #475569; }
-  .feature-item {
-    display: flex; align-items: flex-start; gap: 6px;
-    font-size: 12px; padding: 3px 0; color: #334155;
-  }
-  .feature-item .check { color: #16a34a; font-weight: 700; }
-  .feature-item.todo { color: #94a3b8; }
-  .feature-item.todo .check { color: #cbd5e1; }
   .update-panel {
     background: white;
     border-radius: 8px;
@@ -102,27 +104,52 @@
   .update-status.ok { color: #16a34a; }
   .update-status.err { color: #b91c1c; }
   .update-status.pending { color: #b45309; }
-  .update-links {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px 10px;
+
+  /* 链接区：恢复内置库占主位，反馈与 GitHub 收在下一行右侧 */
+  .update-actions { margin-top: 10px; }
+  .restore-wrap { display: inline-block; }
+  .link-restore {
     font-size: 11px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
   }
-  .update-links a { color: #64748b; text-decoration: none; }
-  .update-links a:hover { color: #2563eb; }
-  .update-links.sub { margin-top: 3px; font-size: 10px; }
-  .update-links.sub a { color: #a3b0c2; }
-  .update-links.sub a:hover { color: #64748b; }
+  .link-restore:hover { color: #1d4ed8; text-decoration: underline; }
+  /* 悬停时在面板内展开说明：不用绝对定位，因此不会盖住按钮或链接 */
+  .restore-tip {
+    display: none;
+    margin-top: 6px;
+    padding: 6px 8px;
+    border-radius: 5px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 10.5px;
+    font-weight: 400;
+    line-height: 1.55;
+  }
+  .restore-wrap:hover ~ .restore-tip { display: block; }
+  .sub-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .link-muted { font-size: 10px; color: #a3b0c2; text-decoration: none; }
+  .link-muted:hover { color: #64748b; }
+  .link-gh {
+    display: inline-flex;
+    align-items: center;
+    color: #a3b0c2;
+    line-height: 1;
+  }
+  .link-gh:hover { color: #334155; }
+  .link-gh svg { width: 15px; height: 15px; display: block; }
+
   .footer {
     font-size: 10px; color: #94a3b8; text-align: center;
-    line-height: 1.5;
+    line-height: 1.6;
   }
-  .footer a { color: #64748b; text-decoration: none; }
-  .footer a:hover { color: #2563eb; }
-  .footer #newVer a { color: #2563eb; font-weight: 600; }
-  #verText { cursor: pointer; }
-  #verText:hover { color: #2563eb; }
   .btn-set {
     flex: 0 0 auto;
     font-family: inherit;
@@ -139,10 +166,13 @@
 </head>
 <body>
   <div class="header">
-    <div class="logo">IF</div>
-    <div style="flex:1">
-      <div class="title">Pubmed IF Tag</div>
-      <div class="subtitle">影响因子自动标注</div>
+    <a class="logo" id="homeLogo" href="https://pubmed-if-tag.pages.dev/" target="_blank" rel="noopener" title="打开主页：简介、安装说明与下载">IF</a>
+    <div class="head-main">
+      <div class="title-row">
+        <span class="title">Pubmed IF Tag</span>
+        <span id="verText" title="点击检查新版本"></span>
+      </div>
+      <div class="subtitle">影响因子自动标注<span id="newVer"></span></div>
     </div>
     <button class="btn-set" id="btnSettings" title="打开设置">设置</button>
   </div>
@@ -165,18 +195,22 @@
     </div>
     <button id="btnUpdate" class="btn-primary">更新期刊数据</button>
     <div id="updateStatus" class="update-status">从 GitHub 拉取最新期刊数据，补上缺失期刊</div>
-    <div class="update-links">
-      <a href="#" id="linkFeedback" target="_blank">反馈与建议</a>
-    </div>
-    <div class="update-links sub">
-      <a href="#" id="btnReset">恢复内置库</a>
-      <a href="#" id="linkGithub" target="_blank">打开 GitHub</a>
+    <div class="update-actions">
+      <span class="restore-wrap">
+        <a href="#" id="btnReset" class="link-restore">恢复内置库</a>
+      </span>
+      <p class="restore-tip">丢弃本地更新过的期刊库，回到安装包自带的 3374 条。更新后数据异常、或想回到初始状态时用。</p>
+      <div class="sub-actions">
+        <a href="#" id="linkFeedback" class="link-muted" target="_blank">反馈与建议</a>
+        <a href="https://github.com/lovest117/pubmed-if-tag" target="_blank" rel="noopener" id="linkGithub" class="link-gh" title="打开 GitHub 仓库">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        </a>
+      </div>
     </div>
   </div>
 
   <div class="footer">
-    <span id="verText"></span><span id="newVer"></span> · <a href="https://pubmed-if-tag.pages.dev/" target="_blank" id="homeLink">主页</a><br>
-    数据来源 Clarivate JCR 2023 · 仅自用
+    数据来源 Clarivate JCR 2023 · © 2026 Pubmed IF Tag
   </div>
 
 <script src="data/journal-if.js"></script>

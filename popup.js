@@ -135,7 +135,7 @@
     if (!myVersion || checkBusy) return;
     checkBusy = true;
     var saved = verEl.textContent;
-    verEl.textContent = '检查中...';
+    verEl.textContent = '检查中';
 
     var remote = await fetchRemoteVersion();
 
@@ -160,19 +160,19 @@
     a.href = zipUrl;
     a.target = '_blank';
     a.rel = 'noopener';
-    a.textContent = '有新版本 v' + remote.version + ' ↓';
+    a.textContent = '新版本 v' + remote.version;
     a.title = '点击下载 v' + remote.version + ' 安装包（解压覆盖原目录后到扩展页点刷新）';
     newVerEl.textContent = ' · ';
     newVerEl.appendChild(a);
 
-    // 浏览器接手下载后，把下一步动作和说明入口留在原位，避免用户下载完不知道怎么办
+    // 浏览器接手下载后，把说明入口留在原位，避免用户下载完不知道下一步
     a.addEventListener('click', function () {
       var help = document.createElement('a');
       help.href = SITE + '/#update';
       help.target = '_blank';
       help.rel = 'noopener';
-      help.textContent = '步骤说明';
-      newVerEl.textContent = ' · 正在下载 · ';
+      help.textContent = '说明';
+      newVerEl.textContent = ' · 已开始下载 ';
       newVerEl.appendChild(help);
     });
   }
@@ -201,7 +201,7 @@
       }
     } catch (err) {
       setStatus('更新失败：' + (err && err.message ? err.message : String(err)) +
-        '。可点下方「打开 GitHub」手动查看最新数据。', 'err');
+        '。可点右下角 GitHub 图标手动查看最新数据。', 'err');
     } finally {
       btnUpdate.disabled = false;
       btnUpdate.textContent = '更新期刊数据';
