@@ -98,6 +98,31 @@
   }
 
   /**
+   * 复制文本到剪贴板；优先用异步 API，失败回退到临时 textarea
+   */
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy') ? resolve() : reject(new Error('execCommand 返回 false'));
+      } catch (e) {
+        reject(e);
+      } finally {
+        document.body.removeChild(ta);
+      }
+    });
+  }
+
+  /**
    * 创建IF badge元素
    */
   function createIFBadge(ifInfo) {
@@ -118,11 +143,33 @@
       background: ${bg};
       border: 1px solid ${color}33;
       vertical-align: middle;
-      cursor: default;
+      cursor: pointer;
       white-space: nowrap;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
-    badge.title = `${ifInfo.name} | JCR ${ifInfo.q}区 | IF ${ifInfo.if}`;
+    badge.title = `${ifInfo.name} | JCR ${ifInfo.q}区 | IF ${ifInfo.if} | 点击复制`;
+
+    // 点击徽章复制「期刊全称 IF xx.x (Qx)」
+    badge.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const plain = `${ifInfo.name} IF ${ifInfo.if}` + (ifInfo.q ? ` (${ifInfo.q})` : '');
+      const saved = badge.innerHTML;
+      const flash = function (txt) {
+        badge.style.opacity = '0.65';
+        badge.textContent = txt;
+        setTimeout(function () {
+          badge.innerHTML = saved;
+          badge.style.opacity = '';
+        }, 1200);
+      };
+      copyText(plain).then(function () {
+        flash('已复制 ✓');
+      }, function () {
+        flash('复制失败');
+      });
+    });
+
     return badge;
   }
 

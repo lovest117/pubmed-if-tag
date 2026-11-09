@@ -6,6 +6,8 @@
   'use strict';
 
   var REPO = 'lovest117/pubmed-if-tag';
+  // 主页在 Cloudflare Pages，国内可访问；反馈入口都从这里进
+  var SITE = 'https://pubmed-if-tag.pages.dev';
   var builtin = window.JOURNAL_IF_DB || {};
   var builtinCount = Object.keys(builtin).length;
 
@@ -20,6 +22,7 @@
   var countEl = $('journalCount');
   var linkGithub = $('linkGithub');
   var linkFeedback = $('linkFeedback');
+  var linkSuggest = $('linkSuggest');
 
   function fmtTime(ts) {
     var d = new Date(ts);
@@ -55,30 +58,10 @@
     }
   }
 
-  // 反馈链接：按固定字段生成 Issue，仓库 Actions 会解析并自动补录
-  function buildFeedbackUrl() {
-    var title = '期刊未收录：请填写期刊缩写';
-    var body = [
-      '### 期刊缩写（如 Nat Commun）',
-      '',
-      '',
-      '### 影响因子 IF（如 14.7）',
-      '',
-      '',
-      '### JCR 分区（Q1 / Q2 / Q3 / Q4）',
-      '',
-      '',
-      '### 文献链接或 PMID',
-      '',
-      '',
-      '<!-- 提交后仓库会自动把它补进期刊库，你在弹窗点一次「一键更新 IF 库」即可生效。请勿修改上面的字段名。 -->'
-    ].join('\n');
-    return 'https://github.com/' + REPO + '/issues/new?title=' +
-      encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
-  }
-
+  // 反馈入口指向主页的对应区块，页面里再跳 GitHub Issue（带模板）
   if (linkGithub) linkGithub.href = 'https://github.com/' + REPO;
-  if (linkFeedback) linkFeedback.href = buildFeedbackUrl();
+  if (linkFeedback) linkFeedback.href = SITE + '/#feedback';
+  if (linkSuggest) linkSuggest.href = SITE + '/#suggest';
 
   btnUpdate.addEventListener('click', async function () {
     btnUpdate.disabled = true;
