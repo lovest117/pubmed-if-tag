@@ -157,6 +157,16 @@ https://pubmed-if-tag.pages.dev/#privacy
 > 这就是你要的"一键更新"：上架后用户什么都不用点。
 > 商店版本和侧载版本的扩展 ID 不同，用户在商店装完之后记得把旧的"加载解压缩"版本删掉，避免两个同时生效。
 
+### 只上 Edge、没上 Chrome 的后果
+
+Edge 商店只管 Edge。**Chrome 用户即使装了你的扩展，也不会拿到自动更新** —— 因为 Chrome 只从 Chrome Web Store 更新。
+
+所以对 Chrome 用户，更新路径只能是：
+1. 弹窗底部点版本号 → 查到 `有新版本 vX.Y.Z ↓` → 点它直接下载新 zip；
+2. 解压覆盖原扩展目录 → 到 `chrome://extensions/` 点刷新。
+
+这也是 v1.0.10 把「有新版本」从"跳主页看"改成"点了直接下载"的原因：这条路 Chrome 用户会长期反复走，少一次跳转就少一次迷路。想彻底消掉这一步，只能再上 Chrome Web Store（5 美元，材料与 Edge 完全复用）。
+
 ---
 
 ## 6. 顺带说一下 Chrome Web Store

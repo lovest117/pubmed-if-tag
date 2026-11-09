@@ -135,12 +135,26 @@
       return;
     }
 
+    var zipUrl = SITE + '/download/Pubmed-IF-Tag-v' + remote + '.zip';
     var a = document.createElement('a');
-    a.href = SITE;
+    a.href = zipUrl;
     a.target = '_blank';
-    a.textContent = '有新版本 v' + remote + ' →';
+    a.rel = 'noopener';
+    a.textContent = '有新版本 v' + remote + ' ↓';
+    a.title = '点击下载 v' + remote + ' 安装包（解压覆盖原目录后到扩展页点刷新）';
     newVerEl.textContent = ' · ';
     newVerEl.appendChild(a);
+
+    // 浏览器接手下载后，把下一步动作和说明入口留在原位，避免用户下载完不知道怎么办
+    a.addEventListener('click', function () {
+      var help = document.createElement('a');
+      help.href = SITE + '/#update';
+      help.target = '_blank';
+      help.rel = 'noopener';
+      help.textContent = '步骤说明';
+      newVerEl.textContent = ' · 正在下载 · ';
+      newVerEl.appendChild(help);
+    });
   }
 
   if (verEl) verEl.addEventListener('click', checkUpdate);

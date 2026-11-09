@@ -104,12 +104,12 @@
       ScholarScope 的免费替代，内置 3374 本期刊（医学与生命科学类 Q1–Q2 全收录），数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
     </p>
     <div class="btns">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.0.9.zip">下载扩展（zip）</a>
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.0.10.zip">下载扩展（zip）</a>
       <a class="btn btn-ghost" href="#feedback">反馈无 IF 标签的期刊</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
     </div>
-    <p class="meta">版本 1.0.9 · 数据来源 Clarivate JCR 2023（2024 年 6 月发布）· MIT 许可</p>
+    <p class="meta">版本 1.0.10 · 数据来源 Clarivate JCR 2023（2024 年 6 月发布）· MIT 许可</p>
   </div>
 </header>
 
@@ -224,7 +224,7 @@
         </div>
         <div>
           <label for="bugVer">插件版本（可选）</label>
-          <input id="bugVer" placeholder="v1.0.9">
+          <input id="bugVer" placeholder="v1.0.10">
         </div>
       </div>
       <button class="btn btn-primary" id="sendBug">提交</button>
@@ -252,6 +252,41 @@
       <b>为什么必须开开发者模式？</b> 这个扩展没有上架 Edge 商店（上架需要开发者账号与审核），本地加载未签名的扩展就只能走「加载解压缩的扩展」。<br>
       <b>为什么不直接装 crx？</b> Edge 会把非商店来源的 crx 标记为「来自其他源」，安装后开关会被锁定、无法启用。所以只提供 zip。
     </div>
+  </div>
+</section>
+
+<section id="update">
+  <div class="wrap">
+    <h2>版本与更新</h2>
+    <p class="lead">当前最新 <b>v1.0.10</b>。侧载安装的版本需要手动换包；等上架商店后，浏览器会自动推送新版本，这一步就不用做了。</p>
+    <div class="grid">
+      <div class="card">
+        <h3>换包只需要三步</h3>
+        <ol>
+          <li>点下面的按钮下载最新 zip；</li>
+          <li>解压，<b>覆盖</b>原来那个扩展目录（目录路径不要改）；</li>
+          <li>打开 <code>edge://extensions/</code>（Chrome 用 <code>chrome://extensions/</code>），点该扩展卡片上的刷新 ↻，再回 PubMed 按 <kbd>Ctrl</kbd>+<kbd>F5</kbd>。</li>
+        </ol>
+        <p class="meta" style="margin-top:10px">期刊库和显示设置都存在本地，换包不会丢。</p>
+      </div>
+      <div class="card">
+        <h3>多数情况其实不用换包</h3>
+        <p>期刊数据是独立的：弹窗点一次「更新期刊数据」就从仓库拉最新库合并到本地，比换包方便。</p>
+        <p style="margin-top:8px">只有插件本身的功能改动才需要换包。弹窗底部点一下版本号，能查到有没有新版。</p>
+      </div>
+    </div>
+    <div class="btns" style="margin-top:16px">
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.0.10.zip">下载 v1.0.10 安装包</a>
+      <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">全部历史版本</a>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:600;margin:26px 0 10px">更新了什么</h3>
+    <table>
+      <tr><th>v1.0.10</th><td>弹窗里的「有新版本」改成点一下直接下载新包；下载后原位给出步骤说明入口。Chrome 用户即使 Edge 已上架，也走这条路径更新。</td></tr>
+      <tr><th>v1.0.9</th><td>反馈只需填刊名，IF 与分区由系统查 JCR 表自动补；主页反馈合成一个三标签页；新增二级设置页；版本检查改为手动点版本号。</td></tr>
+      <tr><th>v1.0.8</th><td>弹窗精简：去掉功能清单与重复统计行，链接分主次两层，更新按钮改名「更新期刊数据」，版本号改为动态读取。</td></tr>
+      <tr><th>v1.0.7</th><td>远程更新时校验库条数，挡住 CDN 返回旧缓存导致的「更新后反而变少」。</td></tr>
+    </table>
   </div>
 </section>
 
@@ -304,6 +339,7 @@
   <div class="wrap">
     Pubmed IF Tag · MIT License · 仅用于个人文献筛选，不提供任何形式的期刊评价结论<br>
     <a href="#feedback">反馈</a> ·
+    <a href="#update">版本更新</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag">GitHub</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
   </div>
