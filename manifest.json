@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pubmed IF Tag",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "在PubMed搜索结果和文章页自动标注期刊影响因子（IF）和JCR分区",
   "icons": {
     "16": "icons/icon16.png",

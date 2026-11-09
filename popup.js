@@ -23,6 +23,14 @@
   var linkGithub = $('linkGithub');
   var linkFeedback = $('linkFeedback');
   var linkSuggest = $('linkSuggest');
+  var verEl = $('verText');
+
+  // 版本号从 manifest 读，避免写死后过期；读不到就整段不显示，不留多余分隔符
+  try {
+    verEl.textContent = 'v' + chrome.runtime.getManifest().version + ' · ';
+  } catch (err) {
+    verEl.textContent = '';
+  }
 
   function fmtTime(ts) {
     var d = new Date(ts);
@@ -36,12 +44,16 @@
     statusEl.textContent = text;
   }
 
-  // 只刷新数量显示，不动状态文案
+  // 只刷新数量显示，不动状态文案：主数字显示当前生效条数，内置/远程的构成放 tooltip
   function showCounts(active) {
-    var entries = active.entries || {};
-    var n = Object.keys(entries).length;
-    libInfo.textContent = '生效 ' + n + ' 种（内置 ' + active.builtinCount + ' 种）';
+    var n = Object.keys(active.entries || {}).length;
+    var builtinN = active.builtinCount || 0;
+    var remoteN = active.remoteCount || 0;
     countEl.textContent = n + ' 种';
+    // 右上角只说数据构成，条数已经在统计区显示，避免重复
+    libInfo.textContent = remoteN > 0 ? '远程补充' : '内置库';
+    libInfo.title = '内置 ' + builtinN + ' 种' +
+      (remoteN > 0 ? ' · 远程补充 ' + remoteN + ' 种' : '');
   }
 
   async function refresh() {

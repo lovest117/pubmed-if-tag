@@ -111,10 +111,15 @@
   }
   .update-links a { color: #64748b; text-decoration: none; }
   .update-links a:hover { color: #2563eb; }
+  .update-links.sub { margin-top: 3px; font-size: 10px; }
+  .update-links.sub a { color: #a3b0c2; }
+  .update-links.sub a:hover { color: #64748b; }
   .footer {
     font-size: 10px; color: #94a3b8; text-align: center;
     line-height: 1.5;
   }
+  .footer a { color: #64748b; text-decoration: none; }
+  .footer a:hover { color: #2563eb; }
 </style>
 </head>
 <body>
@@ -132,54 +137,31 @@
       <span class="status-badge status-on">已启用</span>
     </div>
     <div class="stat-row">
-      <span class="label">内置期刊数</span>
+      <span class="label">期刊库</span>
       <span class="value" id="journalCount">-</span>
-    </div>
-    <div class="stat-row">
-      <span class="label">数据版本</span>
-      <span class="value">JCR 2023 (2024.6)</span>
     </div>
   </div>
 
   <div class="update-panel">
     <div class="update-head">
-      <span class="update-title">IF 期刊库</span>
+      <span class="update-title">一键更新</span>
       <span class="update-info" id="libInfo">-</span>
     </div>
-    <button id="btnUpdate" class="btn-primary">一键更新 IF 库</button>
+    <button id="btnUpdate" class="btn-primary">更新期刊数据</button>
     <div id="updateStatus" class="update-status">从 GitHub 拉取最新期刊数据，补上缺失期刊</div>
     <div class="update-links">
-      <a href="#" id="btnReset">恢复内置库</a>
-      <a href="#" id="linkGithub" target="_blank">打开 GitHub</a>
       <a href="#" id="linkFeedback" target="_blank">反馈无 IF 标签期刊</a>
       <a href="#" id="linkSuggest" target="_blank">功能建议</a>
     </div>
-  </div>
-
-  <div class="features">
-    <h3>功能清单</h3>
-    <div class="feature-item"><span class="check">✓</span> 搜索结果页显示IF+高亮</div>
-    <div class="feature-item"><span class="check">✓</span> 文章详情页显示IF</div>
-    <div class="feature-item"><span class="check">✓</span> JCR分区标签 (Q1-Q4)</div>
-    <div class="feature-item"><span class="check">✓</span> 颜色分级 (IF≥20红/≥10橙/≥5黄/≥2绿)</div>
-    <div class="feature-item"><span class="check">✓</span> 一键更新IF数据库</div>
-    <div class="feature-item todo"><span class="check">○</span> 五年影响因子显示</div>
-  </div>
-
-  <div class="stats" style="margin-bottom:12px;">
-    <div class="stat-row">
-      <span class="label">版本</span>
-      <span class="value">v1.0.4</span>
-    </div>
-    <div class="stat-row">
-      <span class="label">遇到问题？</span>
-      <a href="https://pubmed-if-tag.pages.dev/" target="_blank" style="color:#2563eb;text-decoration:none;font-weight:600;">主页与反馈 →</a>
+    <div class="update-links sub">
+      <a href="#" id="btnReset">恢复内置库</a>
+      <a href="#" id="linkGithub" target="_blank">打开 GitHub</a>
     </div>
   </div>
 
   <div class="footer">
-    仅自用 · 数据来源 Clarivate JCR 2023<br>
-    访问 pubmed.ncbi.nlm.nih.gov 即可生效
+    <span id="verText"></span><span>主页与反馈 <a href="https://pubmed-if-tag.pages.dev/" target="_blank">pubmed-if-tag.pages.dev</a></span><br>
+    数据来源 Clarivate JCR 2023 · 仅自用
   </div>
 
 <script src="data/journal-if.js"></script>
