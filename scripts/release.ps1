@@ -121,11 +121,18 @@ if (-not $NoPush) {
 }
 
 # ---------- 6. GitHub Release ----------
+# 取凭证必须走 cmd 的管道：PowerShell 直接把多行字符串管给 native exe 时，
+# git 收不到 protocol 字段，会报 "refusing to work with credential missing protocol field"
+$inFile = Join-Path $env:TEMP "pif-cred-in.txt"
+[IO.File]::WriteAllText($inFile, "protocol=https`r`nhost=github.com`r`n`r`n", (New-Object Text.ASCIIEncoding))
 Push-Location $Root
-$credText = "protocol=https`nhost=github.com`n`n" | git credential fill
+$credText = cmd /c "type `"$inFile`" | git credential fill" 2>$null
 Pop-Location
-$token = ($credText | Select-String -Pattern "^password=").ToString().Replace("password=", "").Trim()
-if (-not $token) { throw "取不到 GitHub token（git credential fill 返回空）" }
+Remove-Item -LiteralPath $inFile -Force -ErrorAction SilentlyContinue
+
+$line = $credText | Select-String -Pattern "^password="
+if (-not $line) { throw "取不到 GitHub token（git credential fill 未返回 password）" }
+$token = $line.ToString().Replace("password=", "").Trim()
 
 $headers = @{
   Authorization = "Bearer $token"
