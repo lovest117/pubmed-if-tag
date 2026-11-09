@@ -1,9 +1,6 @@
-# 私钥，绝不公开
 *.pem
 *.crx
-
-# 临时文件
-chrome-temp-pack/
 *.zip
+chrome-temp-pack/
 .DS_Store
 Thumbs.db

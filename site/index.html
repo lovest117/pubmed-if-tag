@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pubmed IF Tag — PubMed 影响因子与 JCR 分区标注</title>
+<meta name="description" content="Pubmed IF Tag 是 ScholarScope 的免费替代：在 PubMed 搜索结果和文章详情页自动标注期刊影响因子（IF）与 JCR 分区，内置 592 本期刊，数据存本地不上传。">
+<style>
+  :root{
+    --ink:#0f2b46; --sub:#5b6b7c; --line:#e3e9f0; --bg:#f7f9fc; --card:#ffffff;
+    --brand:#1d4ed8; --brand-soft:#eff4ff;
+    --if20:#b91c1c; --if20bg:#fee2e2;
+    --if10:#c2410c; --if10bg:#ffedd5;
+    --if5:#b45309;  --if5bg:#fef3c7;
+    --if2:#15803d;  --if2bg:#dcfce7;
+    --if0:#64748b;  --if0bg:#f1f5f9;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Roboto,sans-serif;
+    line-height:1.75; font-size:15px;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+  header{padding:48px 0 32px;border-bottom:1px solid var(--line)}
+  h1{font-size:26px;margin:0 0 10px;letter-spacing:.3px}
+  .lead{color:var(--sub);font-size:15px;margin:0 0 22px;max-width:640px}
+  .btns{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;
+    font-size:14px;font-weight:600;text-decoration:none;transition:.15s;
+  }
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(29,78,216,.22)}
+  .btn-primary:hover{background:#1740b8}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:#b9c6d6}
+  .meta{margin-top:14px;font-size:12.5px;color:#8a99a8}
+  section{padding:34px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:17px;margin:0 0 16px;display:flex;align-items:center;gap:8px}
+  h2::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .card h3{font-size:14px;margin:0 0 6px;font-weight:600}
+  .card p{margin:0;font-size:13.5px;color:var(--sub);line-height:1.65}
+  .demo{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;font-size:13.5px;overflow-x:auto}
+  .demo-line{margin:10px 0;white-space:nowrap}
+  .hl{padding:1px 4px;border-radius:3px;font-weight:700}
+  .badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11.5px;font-weight:700;margin-left:6px;vertical-align:1px}
+  .lv20{color:var(--if20);background:var(--if20bg)}
+  .lv10{color:var(--if10);background:var(--if10bg)}
+  .lv5{color:var(--if5);background:var(--if5bg)}
+  .lv2{color:var(--if2);background:var(--if2bg)}
+  .lv0{color:var(--if0);background:var(--if0bg)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--sub)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+  ol,ul{margin:0;padding-left:20px}
+  li{margin:6px 0}
+  code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-size:12.5px;font-family:ui-monospace,Consolas,monospace}
+  .warn{background:#fff9ed;border:1px solid #f5e3c2;border-left:3px solid #d99a2b;border-radius:8px;padding:12px 16px;font-size:13.5px;color:#6b4d14;margin-top:14px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--sub);font-weight:600;font-size:12.5px;width:150px}
+  details{border-bottom:1px solid var(--line);padding:12px 0}
+  details:last-child{border-bottom:none}
+  summary{cursor:pointer;font-size:14px;font-weight:600;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"＋ ";color:var(--brand);font-weight:700}
+  details[open] summary::before{content:"－ "}
+  details p{margin:8px 0 0;color:var(--sub);font-size:13.5px}
+  footer{padding:26px 0 40px;font-size:12.5px;color:#8a99a8}
+  footer a{color:var(--sub)}
+  a{color:var(--brand)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Pubmed IF Tag</h1>
+    <p class="lead">
+      在 PubMed 搜索结果和文章详情页自动标注期刊<b>影响因子（IF）</b>和 <b>JCR 分区</b>。
+      ScholarScope 的免费替代，内置 592 本期刊，数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
+    </p>
+    <div class="btns">
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-1.0.3.zip">下载扩展（zip）</a>
+      <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
+      <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
+    </div>
+    <p class="meta">版本 1.0.3 · 数据来源 Clarivate JCR 2023（2024 年 6 月发布）· MIT 许可</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>效果</h2>
+    <div class="demo">
+      <div class="demo-line">
+        <span class="hl lv20">Lancet. 2024</span>
+        <span class="badge lv20">IF 98.4 · Q1</span>
+      </div>
+      <div class="demo-line">
+        <span class="hl lv10">Nat Commun. 2025</span>
+        <span class="badge lv10">IF 14.7 · Q1</span>
+      </div>
+      <div class="demo-line">
+        <span class="hl lv5">EMBO J. 2024</span>
+        <span class="badge lv5">IF 9.7 · Q1</span>
+      </div>
+      <div class="demo-line">
+        <span class="hl lv2">J Affect Disord. 2023</span>
+        <span class="badge lv2">IF 4.9 · Q1</span>
+      </div>
+      <div class="demo-line">
+        <span class="hl lv0">South Med J. 2021</span>
+        <span class="badge lv0">IF 1.8 · Q3</span>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:#b91c1c"></i>IF ≥ 20</span>
+      <span><i class="dot" style="background:#c2410c"></i>IF ≥ 10</span>
+      <span><i class="dot" style="background:#b45309"></i>IF ≥ 5</span>
+      <span><i class="dot" style="background:#15803d"></i>IF ≥ 2</span>
+      <span><i class="dot" style="background:#64748b"></i>其余</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>功能范围</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>搜索结果页高亮</h3>
+        <p>引用行的「期刊缩写. 年份」按 IF 等级上色加粗，后面跟 IF 与分区徽章，扫一眼就能筛掉低分文献。</p>
+      </div>
+      <div class="card">
+        <h3>文章详情页标注</h3>
+        <p>详情页引用行末尾追加同样的徽章，不用来回切页面查期刊。</p>
+      </div>
+      <div class="card">
+        <h3>JCR 分区</h3>
+        <p>每条都带 Q1–Q4 分区，判断期刊层级更直观。</p>
+      </div>
+      <div class="card">
+        <h3>一键更新期刊库</h3>
+        <p>弹窗里点一下就从仓库拉取最新数据并合并到本地，不用重新安装扩展。三个源自动回退，任一可用即可成功。</p>
+      </div>
+      <div class="card">
+        <h3>反馈缺失期刊</h3>
+        <p>遇到没有标签的期刊，点「反馈缺失期刊」把期刊名、IF、分区提交，作者补进库后更新一次即可生效。</p>
+      </div>
+      <div class="card">
+        <h3>隐私</h3>
+        <p>只有点击更新时才联网。期刊库与设置都存在 <code>chrome.storage.local</code>，不采集、不上传。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>安装说明（Edge / Chrome）</h2>
+    <ol>
+      <li>下载上面的 zip，解压到任意固定目录，例如 <code>D:\Tools\Pubmed-IF-Tag</code>。<b>解压后这个目录以后不要移动或删除</b>，扩展直接从这个目录加载。</li>
+      <li>打开 <code>edge://extensions/</code>（Chrome 是 <code>chrome://extensions/</code>）。</li>
+      <li>打开左下角（或右上角）的「开发人员模式」。</li>
+      <li>点「加载解压缩的扩展」，选择第 1 步解压出来的目录 —— 要选到<b>能看到 manifest.json 的那一层</b>。</li>
+      <li>打开任意 PubMed 页面，按 <kbd>Ctrl</kbd> + <kbd>F5</kbd> 强制刷新。</li>
+    </ol>
+    <div class="warn">
+      <b>为什么必须开开发者模式？</b> 这个扩展没有上架 Edge 商店（上架需要开发者账号与审核），本地加载未签名的扩展就只能走「加载解压缩的扩展」。<br>
+      <b>为什么不直接装 crx？</b> Edge 会把非商店来源的 crx 标记为「来自其他源」，安装后开关会被锁定、无法启用。所以只提供 zip。
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>权限与隐私</h2>
+    <table>
+      <tr><th>storage</th><td>保存更新后的期刊库与更新记录，仅本机可见。</td></tr>
+      <tr><th>api.github.com</th><td>点击「一键更新 IF 库」时读取仓库里的期刊数据文件。</td></tr>
+      <tr><th>cdn.jsdelivr.net</th><td>同上，作为备用数据源（GitHub 直连不稳定时使用）。</td></tr>
+      <tr><th>raw.githubusercontent.com</th><td>同上，第三个备用源。</td></tr>
+      <tr><th>pubmed.ncbi.nlm.nih.gov</th><td>只在 PubMed 页面上读取页面里的期刊名与年份，用于匹配标签，不修改页面以外的任何内容。</td></tr>
+    </table>
+    <p class="meta" style="margin-top:12px">不申请 <code>tabs</code>、<code>history</code>、<code>webRequest</code> 等权限，不读取你的搜索历史和浏览记录。</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>常见问题</h2>
+    <details>
+      <summary>装上了，页面上什么都没出现</summary>
+      <p>先确认「加载解压缩的扩展」选中的目录里有 manifest.json，且扩展开关是开启状态。然后回到 PubMed 按 Ctrl+F5。如果之前加载过旧目录，那个目录被移动或删除后扩展会失效，需要删掉旧条目、重新加载当前目录。</p>
+    </details>
+    <details>
+      <summary>某个期刊没有 IF 标签</summary>
+      <p>说明库里还没收录，或者 PubMed 显示的缩写与库里写法不一致。点插件图标 →「反馈缺失期刊」，填上期刊缩写、IF 和分区（Q1–Q4），作者补录后你在弹窗点一次「一键更新 IF 库」就能拿到。</p>
+    </details>
+    <details>
+      <summary>点「一键更新 IF 库」没反应或报错</summary>
+      <p>更新需要访问 GitHub。如果网络受限，可以改用「打开 GitHub（手动更新）」到仓库页面自行查看 <code>data/journal-if.js</code>，或在本页重新下载最新 zip 覆盖解压目录，再到扩展页点刷新。任何情况下都不会影响已有标签显示。</p>
+    </details>
+    <details>
+      <summary>数据准确吗，能引用吗</summary>
+      <p>内置数据来自 Clarivate JCR 2023（2024 年 6 月发布）。IF 每年更新，第三方整理可能有滞后或笔误，正式投稿、评职称等场合请以 JCR 官方数据为准，本扩展只用于快速筛选文献。</p>
+    </details>
+    <details>
+      <summary>会不会和其他插件冲突</summary>
+      <p>只操作 PubMed 页面里引用行的文本与徽章，不改动 PubMed 自身结构，一般可与 ScholarScope 等共存，但不建议同时开两个同类插件，以免重复标注。</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Pubmed IF Tag · MIT License · 仅用于个人文献筛选，不提供任何形式的期刊评价结论<br>
+    <a href="https://github.com/lovest117/pubmed-if-tag">GitHub</a> ·
+    <a href="https://github.com/lovest117/pubmed-if-tag/issues">问题反馈</a>
+  </div>
+</footer>
+
+</body>
+</html>
