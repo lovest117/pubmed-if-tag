@@ -7,7 +7,7 @@
 - **搜索结果页**：期刊名+年份按IF等级高亮，文献末尾自动标注 `IF xx.x (Qx)`
 - **文章详情页**：在期刊引用行后显示 IF 标签
 - **颜色分级**：IF≥20 红色 / ≥10 橙色 / ≥5 黄色 / ≥2 绿色 / 其他灰色
-- **内置 595+ 本生物医学期刊**（JCR 2023 数据，覆盖神经科学、临床医学、药学等主流方向）
+- **内置约 600 本生物医学期刊**（JCR 2023 数据，覆盖神经科学、临床医学、药学等主流方向）
 - 兼容 PubMed React SPA（翻页、切换搜索不刷新页面自动生效）
 
 ## 效果示意
@@ -19,6 +19,8 @@ Front Neurol. 2024;15:1234567.           IF 3.3 (Q2)
 ```
 
 ## 安装方法
+
+> 更详细的安装要求、使用条件与常见问题，见 **[安装使用说明](INSTALL.md)**。
 
 ### 方式一：开发者模式加载（推荐）
 
@@ -72,14 +74,18 @@ Front Neurol. 2024;15:1234567.           IF 3.3 (Q2)
 ## 文件结构
 
 ```
-Pubmed-IF-Tag/
-├── manifest.json          # 扩展配置 (Manifest V3)
-├── content.js             # 核心注入脚本
-├── content.css            # 样式
-├── popup.html             # 点击图标弹出的设置页
-├── data/
-│   └── journal-if.js       # 内置期刊 IF 数据库
-└── icons/                 # 扩展图标 (16/48/128)
+pubmed-if-tag/
+├── README.md              # 项目介绍
+├── INSTALL.md             # 安装使用说明
+├── LICENSE                # MIT 许可证
+└── Pubmed-IF-Tag/         # 扩展源码
+    ├── manifest.json      # 扩展配置 (Manifest V3)
+    ├── content.js         # 核心注入脚本
+    ├── content.css        # 样式
+    ├── popup.html         # 点击图标弹出的设置页
+    ├── data/
+    │   └── journal-if.js   # 内置期刊 IF 数据库
+    └── icons/             # 扩展图标 (16/48/128)
 ```
 
 ## License
