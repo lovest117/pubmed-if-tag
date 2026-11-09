@@ -12,15 +12,15 @@
 - **反馈缺失期刊**：弹窗里点「反馈缺失期刊」，自动生成预填模板，填上期刊名、IF、分区提交即可补录
 - **手动更新入口**：弹窗里「打开 GitHub（手动更新）」直达仓库，网络受限时可自行查看最新数据
 - **颜色分级**：IF≥20 红色 / ≥10 橙色 / ≥5 黄色 / ≥2 绿色 / 其他灰色
-- **内置 592 本生物医学期刊**（JCR 2023 数据，覆盖神经科学、临床医学、药学等主流方向）
+- **内置 3374 本期刊**（JCR 2023 数据）：医学与生命科学类 Q1–Q2 期刊全收录，含神经科学、临床各科、肿瘤、免疫、药理、公共卫生等方向，另含 Nature、Science、Cell 等综合类顶刊
 - 兼容 PubMed React SPA（翻页、切换搜索不刷新页面自动生效）
 
 ## 效果示意
 
 ```
 Nat Commun. 2025 Nov 18;16(1):10094.    IF 14.7 (Q1)
-Neuron. 2023 Oct 4;111(19):3124-3138.   IF 12.1 (Q1)
-Front Neurol. 2024;15:1234567.           IF 3.3 (Q2)
+Neuron. 2023 Oct 4;111(19):3124-3138.   IF 14.7 (Q1)
+Front Neurol. 2024;15:1234567.           IF 2.7 (Q2)
 ```
 
 ## 安装方法
@@ -113,6 +113,7 @@ Pubmed-IF-Tag/
 │   └── download/          # 主页下载的最新安装包
 ├── scripts/
 │   ├── release.ps1        # 一键打包 + 发版 + 部署
+│   ├── build-journal-db.py    # 用 JCR 2023 全表 + NLM 缩写表重建期刊库
 │   └── add_journal_from_issue.py
 ├── .github/
 │   ├── workflows/         # Issue → 自动补录期刊
@@ -121,6 +122,23 @@ Pubmed-IF-Tag/
 ```
 
 `scripts/add_journal_from_issue.py` 与 `.github/workflows/auto-add-journal.yml` 负责把「反馈缺失期刊」的 Issue 自动补录进数据库。
+
+## 期刊数据来源
+
+内置库不是手工整理的，而是从两份权威数据生成，避免分批补录引入重复键：
+
+| 数据 | 来源 | 用途 |
+|---|---|---|
+| 2023 JCR 全表（21,848 本） | [vallenderlab/journalanalysis](https://github.com/vallenderlab/journalanalysis) 的 `data/jcr_2023_wos.csv` | 影响因子、JIF 分区、学科类别 |
+| NLM 期刊表（4.7 万条） | [NCBI FTP: J_Medline.txt](https://ftp.ncbi.nlm.nih.gov/pubmed/J_Medline.txt) | PubMed 缩写（MedAbbr）与 ISSN，用于把 JCR 全称映射成引用行里的缩写 |
+
+重建流程（原始文件约 12 MB，已 gitignore，下载命令写在脚本开头）：
+
+```powershell
+python scripts/build-journal-db.py
+```
+
+口径：医学与生命科学类学科中 JCR 分区为 Q1/Q2 的期刊，且必须能在 NLM 表里查到 PubMed 缩写；同一本刊属多个学科时取最好分区。JCR 数据版权归 Clarivate，此处仅作个人查阅参考。
 
 ## 发版
 

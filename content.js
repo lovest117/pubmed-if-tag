@@ -37,18 +37,21 @@
   }
 
   /**
-   * 清理期刊名：去掉前导符号、括号后缀等
+   * 清理期刊名：去掉前导符号、括号后缀、缩写分隔点等
    * "Adv Sci (Weinh)" -> "adv sci"
    * "> Nat Commun" -> "nat commun"
+   * "J. Neurosci." -> "j neurosci"
    */
   function normalizeJournalName(raw) {
     let s = raw.toLowerCase().trim();
     // 去掉前导非字母字符（如 >、·、• 等）
     s = s.replace(/^[^a-z]+/, '');
-    // 去掉括号后缀，如 (Weinh)、(Lausanne)、(N Y) 等
+    // 去掉括号后缀，如 (Weinh)、(Lausanne)、(Baltimore) 等
     s = s.replace(/\s*\([^)]*\)\s*$/g, '');
-    // 去掉末尾的点
-    s = s.replace(/\.+$/, '');
+    // 去掉缩写中点（ISO 缩写常用，如 "J. Neurosci." -> "j neurosci"）
+    s = s.replace(/\./g, '');
+    // 压缩多余空白
+    s = s.replace(/\s+/g, ' ');
     return s.trim();
   }
 
