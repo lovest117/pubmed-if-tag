@@ -65,6 +65,50 @@
   .feature-item .check { color: #16a34a; font-weight: 700; }
   .feature-item.todo { color: #94a3b8; }
   .feature-item.todo .check { color: #cbd5e1; }
+  .update-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 12px;
+  }
+  .update-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .update-title { font-size: 12px; font-weight: 600; color: #475569; }
+  .update-info { font-size: 11px; color: #64748b; }
+  .btn-primary {
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: #2563eb;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-primary:disabled { background: #94a3b8; cursor: default; }
+  .update-status {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.5;
+    margin-top: 8px;
+    word-break: break-all;
+  }
+  .update-status.ok { color: #16a34a; }
+  .update-status.err { color: #b91c1c; }
+  .update-status.pending { color: #b45309; }
+  .update-actions {
+    margin-top: 6px;
+    text-align: right;
+    font-size: 11px;
+  }
+  .update-actions a { color: #94a3b8; text-decoration: none; }
+  .update-actions a:hover { color: #2563eb; }
   .footer {
     font-size: 10px; color: #94a3b8; text-align: center;
     line-height: 1.5;
@@ -95,20 +139,32 @@
     </div>
   </div>
 
+  <div class="update-panel">
+    <div class="update-head">
+      <span class="update-title">IF 期刊库</span>
+      <span class="update-info" id="libInfo">-</span>
+    </div>
+    <button id="btnUpdate" class="btn-primary">一键更新 IF 库</button>
+    <div id="updateStatus" class="update-status">从 GitHub 拉取最新期刊数据，补上缺失期刊</div>
+    <div class="update-actions">
+      <a href="#" id="btnReset">恢复内置库</a>
+    </div>
+  </div>
+
   <div class="features">
     <h3>功能清单</h3>
     <div class="feature-item"><span class="check">✓</span> 搜索结果页显示IF+高亮</div>
     <div class="feature-item"><span class="check">✓</span> 文章详情页显示IF</div>
     <div class="feature-item"><span class="check">✓</span> JCR分区标签 (Q1-Q4)</div>
     <div class="feature-item"><span class="check">✓</span> 颜色分级 (IF≥20红/≥10橙/≥5黄/≥2绿)</div>
-    <div class="feature-item todo"><span class="check">○</span> 自动更新IF数据库</div>
+    <div class="feature-item"><span class="check">✓</span> 一键更新IF数据库</div>
     <div class="feature-item todo"><span class="check">○</span> 五年影响因子显示</div>
   </div>
 
   <div class="stats" style="margin-bottom:12px;">
     <div class="stat-row">
       <span class="label">版本</span>
-      <span class="value">v1.0.1</span>
+      <span class="value">v1.0.2</span>
     </div>
     <div class="stat-row">
       <span class="label">遇到问题？</span>
@@ -122,9 +178,90 @@
   </div>
 
 <script src="data/journal-if.js"></script>
+<script src="data/library.js"></script>
 <script>
-  document.getElementById('journalCount').textContent =
-    Object.keys(window.JOURNAL_IF_DB || {}).length + ' 种';
+(function () {
+  'use strict';
+
+  const builtin = window.JOURNAL_IF_DB || {};
+  const builtinCount = Object.keys(builtin).length;
+
+  const libInfo = document.getElementById('libInfo');
+  const statusEl = document.getElementById('updateStatus');
+  const btnUpdate = document.getElementById('btnUpdate');
+  const btnReset = document.getElementById('btnReset');
+  const countEl = document.getElementById('journalCount');
+
+  function fmtTime(ts) {
+    const d = new Date(ts);
+    const p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+      ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  // 只刷新数量显示，不改状态文案
+  function showCounts(active) {
+    const n = Object.keys(active.entries || {}).length;
+    libInfo.textContent = '生效 ' + n + ' 种（内置 ' + active.builtinCount + ' 种）';
+    countEl.textContent = n + ' 种';
+  }
+
+  async function refresh() {
+    const active = await window.PIFLibrary.getActiveLibrary();
+    showCounts(active);
+    if (active.updatedAt) {
+      statusEl.className = 'update-status ok';
+      statusEl.textContent = '已更新于 ' + fmtTime(active.updatedAt) + ' · 来源 ' + active.source;
+    } else {
+      statusEl.className = 'update-status';
+      statusEl.textContent = '当前使用内置数据，尚未更新';
+    }
+  }
+
+  btnUpdate.addEventListener('click', async function () {
+    btnUpdate.disabled = true;
+    btnUpdate.textContent = '更新中...';
+    statusEl.className = 'update-status pending';
+    statusEl.textContent = '正在连接 GitHub 拉取最新数据...';
+
+    try {
+      const latest = await window.PIFLibrary.fetchLatestLibrary();
+      const merged = window.PIFLibrary.mergeLibraries(builtin, latest.entries);
+      await window.PIFLibrary.saveLibrary(merged.entries, latest.source);
+
+      const active = await window.PIFLibrary.getActiveLibrary();
+      showCounts(active);
+
+      const total = Object.keys(merged.entries).length;
+      statusEl.className = 'update-status ok';
+      statusEl.textContent = merged.added > 0
+        ? ('更新成功：新增 ' + merged.added + ' 种，当前共 ' + total + ' 种。请刷新 PubMed 页面生效。')
+        : ('已是最新数据，共 ' + total + ' 种，无需新增。');
+    } catch (err) {
+      statusEl.className = 'update-status err';
+      statusEl.textContent = '更新失败：' + (err && err.message ? err.message : String(err));
+    } finally {
+      btnUpdate.disabled = false;
+      btnUpdate.textContent = '一键更新 IF 库';
+    }
+  });
+
+  btnReset.addEventListener('click', async function (e) {
+    e.preventDefault();
+    try {
+      await window.PIFLibrary.clearLibrary();
+      const active = await window.PIFLibrary.getActiveLibrary();
+      showCounts(active);
+      statusEl.className = 'update-status';
+      statusEl.textContent = '已恢复内置库（' + active.builtinCount + ' 种）。请刷新 PubMed 页面生效。';
+    } catch (err) {
+      statusEl.className = 'update-status err';
+      statusEl.textContent = '恢复失败：' + (err && err.message ? err.message : String(err));
+    }
+  });
+
+  refresh();
+})();
 </script>
 </body>
 </html>

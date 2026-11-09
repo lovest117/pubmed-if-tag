@@ -126,7 +126,6 @@ const JOURNAL_IF_DB = {
   "eur j cancer": { if: 10.9, q: "Q1", name: "European Journal of Cancer" },
   "br j cancer": { if: 8.8, q: "Q1", name: "British Journal of Cancer" },
   "oncogene": { if: 8.0, q: "Q1", name: "Oncogene" },
-  "Int j cancer": { if: 7.0, q: "Q1", name: "International Journal of Cancer" },
   "int j cancer": { if: 7.0, q: "Q1", name: "International Journal of Cancer" },
   "cancer": { if: 6.2, q: "Q1", name: "Cancer" },
   "cancer res": { if: 11.2, q: "Q1", name: "Cancer Research" },
@@ -447,7 +446,7 @@ const JOURNAL_IF_DB = {
   "yale j biol med": { if: 2.5, q: "Q2", name: "Yale Journal of Biology and Medicine" },
   "perm j": { if: 2.0, q: "Q3", name: "The Permanente Journal" },
   "mo med": { if: 0.8, q: "Q4", name: "Missouri Medicine" },
-  "w V med j": { if: 0.0, q: "Q4", name: "West Virginia Medical Journal" },
+  "w v med j": { if: 0.0, q: "Q4", name: "West Virginia Medical Journal" },
   "west j med": { if: 0.0, q: "Q4", name: "Western Journal of Medicine" },
   "bmj": { if: 105.7, q: "Q1", name: "BMJ" },
   "bmj qual saf": { if: 8.8, q: "Q1", name: "BMJ Quality & Safety" },
@@ -657,7 +656,6 @@ const JOURNAL_IF_DB = {
   "jmir": { if: 7.9, q: "Q1", name: "Journal of Medical Internet Research" },
   "j am med inform assoc": { if: 5.7, q: "Q1", name: "JAMIA" },
   "jamia": { if: 5.7, q: "Q1", name: "JAMIA" },
-  "j med Internet res": { if: 7.9, q: "Q1", name: "Journal of Medical Internet Research" },
   "j med internet res": { if: 7.9, q: "Q1", name: "Journal of Medical Internet Research" },
 
   // ===== 其他常见期刊（补充） =====
@@ -730,7 +728,7 @@ const JOURNAL_IF_DB = {
   "bmc gastroenterol": { if: 2.5, q: "Q3", name: "BMC Gastroenterology" },
   "j gastric cancer": { if: 3.0, q: "Q2", name: "Journal of Gastric Cancer" },
   "hepatol res": { if: 3.5, q: "Q2", name: "Hepatology Research" },
-  "j Gastroenterol": { if: 5.0, q: "Q1", name: "Journal of Gastroenterology" },
+  "j gastroenterol": { if: 5.0, q: "Q1", name: "Journal of Gastroenterology" },
 
   // ===== 神经科学（补充） =====
   "brain res": { if: 3.5, q: "Q2", name: "Brain Research" },
@@ -765,7 +763,6 @@ const JOURNAL_IF_DB = {
   "psychosom med": { if: 4.8, q: "Q1", name: "Psychosomatic Medicine" },
   "psychoneuroendocrinology": { if: 5.0, q: "Q1", name: "Psychoneuroendocrinology" },
   "br j psychiatry": { if: 10.6, q: "Q1", name: "British Journal of Psychiatry" },
-  "jAMA psychiatry": { if: 25.1, q: "Q1", name: "JAMA Psychiatry" },
   "am j psychiatry": { if: 18.3, q: "Q1", name: "American Journal of Psychiatry" },
   "lancet psychiatry": { if: 27.8, q: "Q1", name: "Lancet Psychiatry" },
   "world psychiatry": { if: 49.5, q: "Q1", name: "World Psychiatry" },
@@ -950,7 +947,6 @@ const JOURNAL_IF_DB = {
   "j child neurol": { if: 2.5, q: "Q2", name: "Journal of Child Neurology" },
   "dev med child neurol": { if: 5.0, q: "Q1", name: "Developmental Medicine & Child Neurology" },
   "dev med child neurol": { if: 5.0, q: "Q1", name: "Developmental Medicine & Child Neurology" },
-  "eur J Paediatr Neurol": { if: 3.0, q: "Q1", name: "European Journal of Paediatric Neurology" },
   "eur j paediatr neurol": { if: 3.0, q: "Q1", name: "European Journal of Paediatric Neurology" },
   "sci rep": { if: 3.8, q: "Q2", name: "Scientific Reports" },
   "plos one": { if: 2.9, q: "Q3", name: "PLoS ONE" },
