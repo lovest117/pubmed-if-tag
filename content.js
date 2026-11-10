@@ -260,6 +260,12 @@
       white-space: nowrap;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
+    // 供筛选条、导出、悬停卡直接读取，不用再从徽章文本里抠数字
+    badge.dataset.pifhIf = String(ifInfo.if);
+    badge.dataset.pifhName = ifInfo.name || '';
+    badge.dataset.pifhQ = ifInfo.q || '';
+    badge.dataset.pifhCn = ifInfo.cn || '';
+    badge.dataset.pifhTop = ifInfo.top ? '1' : '';
     const casTitle = ifInfo.cn ? ` | 中科院${ifInfo.cn}区${ifInfo.top ? ' Top' : ''}` : '';
     badge.title = `${ifInfo.name} | JCR ${ifInfo.q || 'N/A'}区 | IF ${ifInfo.if}${casTitle} | 点击复制`;
     // 说明用途即可，不开放 tabindex：每行一个徽章全可聚焦会让 Tab 逐个穿过几十个焦点
@@ -660,19 +666,456 @@
     const isSearch = url.includes('/?') || /pubmed\.ncbi\.nlm\.nih\.gov\/$/.test(url);
     const isDetail = /\/\d+\/$/.test(url);
     if (isSearch) {
-      if (cfg().showSearch) processSearchResultsPage();
+      if (cfg().showSearch) {
+        processSearchResultsPage();
+        refreshFilterBar();
+      }
     } else if (isDetail) {
       if (cfg().showDetail) processArticleDetailPage();
     } else {
       // URL 类型不明确时，按用户开关各试一次
-      if (cfg().showSearch) processSearchResultsPage();
+      if (cfg().showSearch) {
+        processSearchResultsPage();
+        refreshFilterBar();
+      }
       if (cfg().showDetail) processArticleDetailPage();
     }
   }
 
+  // ========== 1.3.0：结果页筛选 / 导出 / 悬停卡 ==========
+
+  const UI = {
+    // 筛选状态刻意不放 storage：换一页文档就该回到「全部」，避免下次打开莫名空空如也
+    filterState: { tier: 'all', q: '', cn: '', top: false },
+    card: null,
+    lastBadge: null,
+    cardTimer: null,
+    hideTimer: null,
+    hoverBound: false,
+  };
+
+  /**
+   * 收集"一条搜索结果"对应的可隐藏单元。
+   * 以刊名引用行为锚点往上找 article / .search-results-item，
+   * 比直接按 .full-view 之类的类名猜更不容易把整块列表当一个结果。
+   */
+  function resultItems() {
+    let anchors = Array.prototype.slice.call(document.querySelectorAll('.docsum-journal-citation'));
+    if (!anchors.length) {
+      anchors = Array.prototype.slice.call(document.querySelectorAll('.docsum'));
+    }
+    const boxes = [];
+    anchors.forEach(function (c) {
+      const box = c.closest('article') ||
+        c.closest('.search-results-item') ||
+        c.closest('.full-view') ||
+        c.parentElement;
+      if (!box || boxes.indexOf(box) !== -1) return;
+      boxes.push(box);
+    });
+    return boxes;
+  }
+
+  function badgeOf(item) {
+    return item.querySelector('[data-pifh-badge]');
+  }
+
+  /** 把 IF 值映射成筛选档位，与徽章配色同一套阈值 */
+  function tierOf(value) {
+    const t = cfg().thresholds;
+    if (typeof value !== 'number' || !isFinite(value)) return 'none';
+    if (value >= t[0]) return 't20';
+    if (value >= t[1]) return 't10';
+    if (value >= t[2]) return 't5';
+    if (value >= t[3]) return 't3';
+    return 't0';
+  }
+
+  function matchFilter(item) {
+    const f = UI.filterState;
+    const badge = badgeOf(item);
+    if (f.tier === 'none') return !badge;
+    if (f.tier !== 'all') {
+      if (!badge || tierOf(parseFloat(badge.dataset.pifhIf)) !== f.tier) return false;
+    }
+    if (f.q && (!badge || (badge.dataset.pifhQ || '') !== f.q)) return false;
+    if (f.cn && (!badge || (badge.dataset.pifhCn || '') !== f.cn)) return false;
+    if (f.top && (!badge || badge.dataset.pifhTop !== '1')) return false;
+    return true;
+  }
+
+  function applyFilter() {
+    const items = resultItems();
+    let shown = 0;
+    items.forEach(function (el) {
+      const ok = matchFilter(el);
+      if (ok) shown++;
+      el.classList.toggle('pifh-hidden', !ok);
+    });
+    const countEl = document.querySelector('.pifh-filter .pifh-count');
+    if (countEl) countEl.textContent = '显示 ' + shown + ' / ' + items.length + ' 条';
+  }
+
+  function makeChip(label, active, dotColor, onClick) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pifh-chip';
+    if (active) btn.dataset.on = '1';
+    if (dotColor) {
+      const dot = document.createElement('span');
+      dot.className = 'pifh-chip-dot';
+      dot.style.background = dotColor;
+      btn.appendChild(dot);
+    }
+    btn.appendChild(document.createTextNode(label));
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick();
+    });
+    return btn;
+  }
+
+  function makeGroup(bar, label) {
+    const g = document.createElement('div');
+    g.className = 'pifh-grp';
+    const l = document.createElement('span');
+    l.className = 'pifh-lab';
+    l.textContent = label;
+    g.appendChild(l);
+    bar.appendChild(g);
+    return g;
+  }
+
+  function buildFilterBar() {
+    const f = UI.filterState;
+    const t = cfg().thresholds;
+    const bar = document.createElement('div');
+    bar.className = 'pifh-filter';
+    bar.dataset.pifhFilter = 'true';
+    bar.dataset.pifhAux = 'true';
+
+    const main = document.createElement('div');
+    main.className = 'pifh-main';
+    bar.appendChild(main);
+
+    const gTier = makeGroup(main, 'IF');
+    const tiers = [
+      ['全部', 'all', ''],
+      ['≥' + t[0], 't20', IF_PALETTE[0]],
+      [t[1] + '–' + t[0], 't10', IF_PALETTE[1]],
+      [t[2] + '–' + t[1], 't5', IF_PALETTE[2]],
+      [t[3] + '–' + t[2], 't3', IF_PALETTE[3]],
+      ['<' + t[3], 't0', IF_PALETTE[4]],
+      ['未收录', 'none', '#cbd5e1']
+    ];
+    tiers.forEach(function (item) {
+      gTier.appendChild(makeChip(item[0], f.tier === item[1], item[2], function () {
+        f.tier = (f.tier === item[1] && item[1] !== 'all') ? 'all' : item[1];
+        refreshFilterBar();
+      }));
+    });
+
+    // 组与组之间靠标签和间距区分，不再用竖线分隔（换行时会落单）
+    const gQ = makeGroup(main, 'JCR');
+    ['Q1', 'Q2', 'Q3', 'Q4'].forEach(function (q) {
+      gQ.appendChild(makeChip(q, f.q === q, '', function () {
+        f.q = (f.q === q) ? '' : q;
+        refreshFilterBar();
+      }));
+    });
+
+    const gCn = makeGroup(main, '中科院');
+    ['1', '2', '3', '4'].forEach(function (n) {
+      gCn.appendChild(makeChip(n + '区', f.cn === n, '', function () {
+        f.cn = (f.cn === n) ? '' : n;
+        refreshFilterBar();
+      }));
+    });
+
+    // Top 归在中科院体系里，跟在 1–4 区后面，换行时不会孤零零掉一行
+    const chipTop = makeChip('Top', f.top, '', function () {
+      f.top = !f.top;
+      refreshFilterBar();
+    });
+    gCn.appendChild(chipTop);
+
+    const count = document.createElement('span');
+    count.className = 'pifh-count';
+    bar.appendChild(count);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pifh-export';
+    btn.textContent = '导出 CSV';
+    btn.title = '只导出当前筛选后可见的条目';
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      exportVisibleCsv();
+    });
+    bar.appendChild(btn);
+
+    return bar;
+  }
+
+  /**
+   * 重建筛选条：翻页/新搜索后旧条会被页面替换或移除，
+   * 所以每次都按当前结果列表重新挂一次，状态留在 UI.filterState 里。
+   */
+  function refreshFilterBar() {
+    if (!cfg().showSearch) return;
+    const items = resultItems();
+    const old = document.querySelector('[data-pifh-filter]');
+    if (!items.length) {
+      if (old) old.remove();
+      return;
+    }
+    const bar = buildFilterBar();
+    if (old && old.parentNode) {
+      old.parentNode.replaceChild(bar, old);
+    } else {
+      const host = document.getElementById('search-results');
+      if (host) {
+        host.insertBefore(bar, host.firstChild);
+      } else {
+        items[0].parentNode.insertBefore(bar, items[0]);
+      }
+    }
+    syncFilterTop(bar);
+    applyFilter();
+  }
+
+  /**
+   * 筛选条要贴在 PubMed 自己那条固定顶部导航的下沿，
+   * 否则往下滚动时会钻到导航底下，「常驻」就白做了。
+   */
+  function syncFilterTop(bar) {
+    let offset = 0;
+    const hdr = document.querySelector('header');
+    if (hdr) {
+      const pos = window.getComputedStyle(hdr).position;
+      if (pos === 'sticky' || pos === 'fixed') {
+        const h = hdr.getBoundingClientRect().height;
+        if (h > 0 && h < 160) offset = Math.round(h);
+      }
+    }
+    bar.style.top = offset + 'px';
+  }
+
+  function csvCell(value) {
+    const s = String(value == null ? '' : value);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function exportVisibleCsv() {
+    const items = resultItems().filter(function (el) {
+      return !el.classList.contains('pifh-hidden');
+    });
+    if (!items.length) {
+      alert('当前没有可导出的条目');
+      return;
+    }
+
+    const rows = [['期刊', '年份', 'IF', 'JCR分区', '中科院分区', 'Top', '标题', 'PMID', '链接']];
+    items.forEach(function (el) {
+      const badge = badgeOf(el);
+      const citeEl = el.querySelector('.docsum-journal-citation') || el.querySelector('.docsum');
+      const citeText = citeEl ? citeEl.textContent.replace(/\s+/g, ' ').trim() : '';
+      const yearMatch = citeText.match(/\b(19|20)\d{2}\b/);
+
+      const titleEl = el.querySelector('.docsum-title') || el.querySelector('h3');
+      const titleText = titleEl ? titleEl.textContent.replace(/\s+/g, ' ').trim() : '';
+
+      let pmid = '';
+      const pmidEl = el.querySelector('.docsum-pmid, [data-pmid]');
+      if (pmidEl) {
+        pmid = String(pmidEl.getAttribute('data-pmid') || pmidEl.textContent || '')
+          .replace(/\D/g, '');
+      }
+
+      let journal = badge ? (badge.dataset.pifhName || '') : '';
+      if (!journal) journal = extractJournalAbbreviation(citeText) || citeText;
+
+      rows.push([
+        journal,
+        yearMatch ? yearMatch[0] : '',
+        badge ? badge.dataset.pifhIf : '',
+        badge ? (badge.dataset.pifhQ || '') : '',
+        badge && badge.dataset.pifhCn ? ('中科院' + badge.dataset.pifhCn + '区') : '',
+        badge && badge.dataset.pifhTop === '1' ? 'Top' : '',
+        titleText,
+        pmid,
+        pmid ? ('https://pubmed.ncbi.nlm.nih.gov/' + pmid + '/') : ''
+      ]);
+    });
+
+    const csv = '\uFEFF' + rows.map(function (r) {
+      return r.map(csvCell).join(',');
+    }).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const d = new Date();
+    const stamp = d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pubmed-if-' + stamp + '.csv';
+    a.dataset.pifhAux = 'true';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 1500);
+  }
+
+  function ensureCard() {
+    if (UI.card && document.contains(UI.card)) return UI.card;
+    const card = document.createElement('div');
+    card.className = 'pifh-card';
+    card.dataset.pifhCard = 'true';
+    card.dataset.pifhAux = 'true';
+    document.body.appendChild(card);
+    UI.card = card;
+    return card;
+  }
+
+  function cardRow(card, key, value) {
+    const row = document.createElement('div');
+    row.className = 'pifh-c-row';
+    const k = document.createElement('span');
+    k.className = 'pifh-c-k';
+    k.textContent = key;
+    const v = document.createElement('span');
+    v.className = 'pifh-c-v';
+    v.textContent = value;
+    row.appendChild(k);
+    row.appendChild(v);
+    card.appendChild(row);
+  }
+
+  function fillCard(badge) {
+    const card = ensureCard();
+    const ifValue = parseFloat(badge.dataset.pifhIf);
+    const colors = getIFColors(ifValue);
+    const q = badge.dataset.pifhQ || '';
+    const cn = badge.dataset.pifhCn || '';
+    const top = badge.dataset.pifhTop === '1';
+
+    card.innerHTML = '';
+
+    const title = document.createElement('div');
+    title.className = 'pifh-c-title';
+    const dot = document.createElement('span');
+    dot.className = 'pifh-c-dot';
+    dot.style.background = colors.solid;
+    const name = document.createElement('span');
+    name.textContent = badge.dataset.pifhName || '库内未收录';
+    title.appendChild(dot);
+    title.appendChild(name);
+    card.appendChild(title);
+
+    const owner = badge.parentElement;
+    const abbr = owner ? extractJournalAbbreviation(owner.textContent || '') : '';
+    const fullName = (badge.dataset.pifhName || '').toLowerCase();
+    // 缩写与全称一样时（如 Lancet）不重复占一行
+    if (abbr && abbr.toLowerCase() !== fullName) {
+      const line = document.createElement('div');
+      line.className = 'pifh-c-abbr';
+      line.textContent = abbr;
+      card.appendChild(line);
+    }
+
+    cardRow(card, '影响因子', isFinite(ifValue) ? ifValue.toFixed(1) : '—');
+    cardRow(card, 'JCR 分区', q || '—');
+    cardRow(card, '中科院分区', cn ? (cn + ' 区' + (top ? ' · Top' : '')) : '—');
+    cardRow(card, '数据版本', 'JCR 2025');
+
+    const foot = document.createElement('div');
+    foot.className = 'pifh-c-foot';
+    foot.textContent = '点击徽章可复制这条期刊信息';
+    card.appendChild(foot);
+
+    return card;
+  }
+
+  function placeCard(badge) {
+    const card = ensureCard();
+    const rect = badge.getBoundingClientRect();
+    // 先量尺寸再摆位置，避免从旧位置飞过去的闪动
+    card.style.visibility = 'hidden';
+    card.dataset.on = '1';
+    const w = card.offsetWidth;
+    const h = card.offsetHeight;
+
+    let left = rect.left + rect.width / 2 - w / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+
+    let top = rect.bottom + 8;
+    if (top + h > window.innerHeight - 8) top = rect.top - h - 8;
+    if (top < 8) top = 8;
+
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+    card.style.visibility = '';
+  }
+
+  function hideCard() {
+    if (UI.card) UI.card.dataset.on = '';
+  }
+
+  /**
+   * 徽章数量一页几十个，逐个绑监听既费内存也拖慢扫描，
+   * 这里统一在 document 上做一次捕获阶段委托。
+   */
+  function bindHoverCard() {
+    if (UI.hoverBound) return;
+    UI.hoverBound = true;
+
+    document.addEventListener('mouseover', function (e) {
+      const t = e.target;
+      if (!t || t.nodeType !== 1 || !t.closest) return;
+      const badge = t.closest('[data-pifh-badge]');
+      if (!badge || badge === UI.lastBadge) return;
+      UI.lastBadge = badge;
+      clearTimeout(UI.cardTimer);
+      clearTimeout(UI.hideTimer);
+      UI.cardTimer = setTimeout(function () {
+        if (UI.lastBadge === badge) {
+          fillCard(badge);
+          placeCard(badge);
+        }
+      }, 140);
+    }, true);
+
+    document.addEventListener('mouseout', function (e) {
+      const t = e.target;
+      if (!t || t.nodeType !== 1 || !t.closest) return;
+      const badge = t.closest('[data-pifh-badge]');
+      if (!badge) return;
+      // 徽章内部元素之间移动不算离开
+      const to = e.relatedTarget;
+      if (to && to.nodeType === 1 && to.closest && to.closest('[data-pifh-badge]') === badge) return;
+      UI.lastBadge = null;
+      clearTimeout(UI.cardTimer);
+      clearTimeout(UI.hideTimer);
+      UI.hideTimer = setTimeout(hideCard, 100);
+    }, true);
+
+    // 滚动时徽章位置变了，卡片会挂在半空，直接收起
+    window.addEventListener('scroll', function () {
+      if (UI.card && UI.card.dataset.on) hideCard();
+    }, true);
+  }
+
   // ========== MutationObserver 监听动态加载 ==========
 
-  const OWN_NODE_ATTRS = ['data-pifh-badge', 'data-pifh-hl', 'data-pifh-missing'];
+  const OWN_NODE_ATTRS = ['data-pifh-badge', 'data-pifh-hl', 'data-pifh-missing',
+    'data-pifh-filter', 'data-pifh-card', 'data-pifh-aux'];
 
   /**
    * 新增节点是否是本插件自己插入的。
@@ -763,6 +1206,7 @@
   }
 
   async function init() {
+    bindHoverCard();
     await loadSettings();
     await loadActiveLibrary();
 

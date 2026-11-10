@@ -6,8 +6,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        只需要填**期刊名称**。IF 和分区由系统从 JCR 2023 表自动查，不用你去查。
+        只需要填**期刊名称**。IF 与分区由系统从内置的 JCR 2025 与中科院分区表 2025 自动查，不用你去查。
         提交后机器人会直接写进期刊库并关闭本 Issue，你回插件点一次「更新期刊数据」就能拿到。
+        也可以不去 GitHub，直接在官网反馈区生成一段文本复制过来。
   - type: input
     id: journal
     attributes:

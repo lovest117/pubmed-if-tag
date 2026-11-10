@@ -4,7 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pubmed IF Tag — PubMed 影响因子与 JCR 分区标注</title>
-<meta name="description" content="Pubmed IF Tag 是 ScholarScope 的免费替代：在 PubMed 搜索结果和文章详情页自动标注期刊影响因子（IF）、JCR 分区与中科院分区，内置 13575 本期刊（JCR 2025 + 中科院分区表 2025），数据存本地不上传。">
+<meta name="description" content="Pubmed IF Tag 是 ScholarScope 的免费替代：在 PubMed 搜索结果和文章详情页自动标注期刊影响因子（IF）、JCR 分区与中科院分区，内置 13575 本期刊（JCR 2025 + 中科院分区表 2025），支持结果页筛选与 CSV 导出，数据存本地不上传。">
+<link rel="canonical" href="https://pubmed-if-tag.pages.dev/">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#00663F">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pubmed IF Tag">
+<meta property="og:title" content="Pubmed IF Tag — PubMed 影响因子与 JCR 分区标注">
+<meta property="og:description" content="在 PubMed 结果页自动标注 IF、JCR 与中科院分区，支持按分区筛选、一键导出 CSV、悬停查看期刊详情。内置 13575 本期刊，全部本地运行。">
+<meta property="og:url" content="https://pubmed-if-tag.pages.dev/">
+<meta property="og:image" content="https://pubmed-if-tag.pages.dev/img/effect-search.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pubmed IF Tag — PubMed 影响因子与 JCR 分区标注">
+<meta name="twitter:description" content="PubMed 结果页自动标注 IF、JCR 与中科院分区，支持筛选与 CSV 导出，内置 13575 本期刊，本地运行不上传。">
+<meta name="twitter:image" content="https://pubmed-if-tag.pages.dev/img/effect-search.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Pubmed IF Tag",
+  "applicationCategory": "BrowserApplication",
+  "operatingSystem": "Chrome, Edge",
+  "url": "https://pubmed-if-tag.pages.dev/",
+  "downloadUrl": "https://pubmed-if-tag.pages.dev/version.json",
+  "description": "在 PubMed 搜索结果和文章详情页自动标注期刊影响因子、JCR 分区与中科院分区，支持结果页筛选与 CSV 导出。",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
+  "license": "https://opensource.org/licenses/MIT",
+  "isAccessibleForFree": true
+}
+</script>
+
 <style>
   :root{
     --ink:#0f2b46; --sub:#5b6b7c; --line:#e3e9f0; --bg:#f7f9fc; --card:#ffffff;
@@ -28,13 +59,18 @@
   .btns{display:flex;gap:10px;flex-wrap:wrap}
   .btn{
     display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;
-    font-size:14px;font-weight:600;text-decoration:none;transition:.15s;
+    font-size:14px;font-weight:600;text-decoration:none;transition:.15s;border:1px solid transparent;
+    font-family:inherit;cursor:pointer;
   }
   .btn-primary{background:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(29,78,216,.22)}
   .btn-primary:hover{background:#1740b8}
   .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
   .btn-ghost:hover{border-color:#b9c6d6}
   .meta{margin-top:14px;font-size:12.5px;color:#8a99a8}
+  .pill{
+    display:inline-block;padding:1px 9px;border-radius:999px;
+    background:#E0EDE8;color:var(--if20ink);font-size:12px;font-weight:600;
+  }
   section{padding:36px 0;border-bottom:1px solid var(--line);scroll-margin-top:24px}
   h2{font-size:17px;margin:0 0 16px;display:flex;align-items:center;gap:8px}
   h2::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px}
@@ -42,23 +78,29 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
   .card h3{font-size:14px;margin:0 0 6px;font-weight:600}
   .card p{margin:0;font-size:13.5px;color:var(--sub);line-height:1.65}
-  .demo{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;font-size:13.5px;overflow-x:auto}
   .demo-line{margin:10px 0;white-space:nowrap}
   .hl{padding:1px 4px;border-radius:3px;font-weight:700}
   .badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11.5px;font-weight:700;margin-left:6px;vertical-align:1px}
-  .lv20{color:var(--if20ink);background:var(--if20bg)}
-  .lv10{color:var(--if10ink);background:var(--if10bg)}
-  .lv5{color:var(--if5ink);background:var(--if5bg)}
-  .lv3{color:var(--if3ink);background:var(--if3bg)}
-  .lv0{color:var(--if0ink);background:var(--if0bg)}
   .badge.lv20{color:var(--if20fg);background:var(--if20)}
   .badge.lv10{color:var(--if10fg);background:var(--if10)}
   .badge.lv5{color:var(--if5fg);background:var(--if5)}
   .badge.lv3{color:var(--if3fg);background:var(--if3)}
   .badge.lv0{color:var(--if0fg);background:var(--if0)}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--sub)}
+  .lv20{color:var(--if20ink);background:var(--if20bg)}
+  .lv10{color:var(--if10ink);background:var(--if10bg)}
+  .lv5{color:var(--if5ink);background:var(--if5bg)}
+  .lv3{color:var(--if3ink);background:var(--if3bg)}
+  .lv0{color:var(--if0ink);background:var(--if0bg)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--sub)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+  /* 效果截图 */
+  .shot{
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden;
+    box-shadow:0 6px 20px rgba(15,43,70,.06);
+  }
+  .shot img{display:block;width:100%;height:auto}
+  .figcap{font-size:12.5px;color:#8a99a8;margin:10px 0 0}
   ol,ul{margin:0;padding-left:20px}
   li{margin:6px 0}
   code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-size:12.5px;font-family:ui-monospace,Consolas,monospace}
@@ -76,7 +118,7 @@
   footer{padding:26px 0 40px;font-size:12.5px;color:#8a99a8}
   footer a{color:var(--sub)}
   a{color:var(--brand)}
-  /* 反馈区：三个 tab 共用一个面板，降低填表负担 */
+  /* 反馈区 */
   .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
   .tab{
     font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
@@ -97,6 +139,42 @@
   .panel textarea{resize:vertical;line-height:1.6}
   .panel .hint{font-size:12.5px;color:#8a99a8;margin:10px 0 0}
   .panel .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .minor{font-size:12.5px;color:#8a99a8;text-decoration:none;border-bottom:1px dashed #cbd5e1}
+  .minor:hover{color:var(--brand);border-color:var(--brand)}
+  .out{
+    background:#f7f9fc;border:1px dashed #cfd9e5;border-radius:8px;
+    font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:#41556b;
+    margin-top:12px;display:none;
+  }
+  .out.show{display:block}
+  .lookup{margin:-4px 0 12px;font-size:12.5px;min-height:18px}
+  .lookup.ok{color:#278258}
+  .lookup.no{color:#9B5C30}
+  .lookup.wait{color:#8a99a8}
+  .toast{
+    position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(12px);
+    background:#0f2b46;color:#fff;font-size:13px;padding:9px 18px;border-radius:999px;
+    opacity:0;transition:.18s;pointer-events:none;z-index:99;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* 窄屏：单列按钮、表格改块状 */
+  @media (max-width:760px){
+    .wrap{padding:0 16px}
+    header{padding:30px 0 24px}
+    h1{font-size:22px}
+    .lead{font-size:14px}
+    .btns .btn{flex:1 1 100%;justify-content:center}
+    section{padding:26px 0}
+    h2{font-size:16px}
+    .grid{grid-template-columns:1fr}
+    .panel .row2{grid-template-columns:1fr}
+    table th{width:auto;display:block;border-bottom:none;padding-bottom:0}
+    table td{display:block;padding-top:2px;padding-bottom:12px}
+    .legend{gap:10px}
+    .actions .btn{flex:1 1 100%;justify-content:center}
+  }
 </style>
 </head>
 <body>
@@ -105,55 +183,41 @@
   <div class="wrap">
     <h1>Pubmed IF Tag</h1>
     <p class="lead">
-      在 PubMed 搜索结果和文章详情页自动标注期刊<b>影响因子（IF）</b>和 <b>JCR 分区</b>。
-      ScholarScope 的免费替代，内置 13575 本期刊（JCR 2025 影响因子与分区 + 中科院分区表 2025），数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
+      在 PubMed 搜索结果和文章详情页自动标注期刊<b>影响因子（IF）</b>和 <b>JCR / 中科院分区</b>。
+      ScholarScope 的免费替代，内置 13575 本期刊（JCR 2025 + 中科院分区表 2025），
+      数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
     </p>
     <div class="btns">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.2.1.zip">下载扩展（zip）</a>
+      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.0.zip">下载扩展（zip）</a>
       <a class="btn btn-ghost" href="./search.html">在线查期刊分区</a>
       <a class="btn btn-ghost" href="#feedback">反馈无 IF 标签的期刊</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
     </div>
-    <p class="meta">版本 1.2.1 · 数据来源 Clarivate JCR 2025 + 中科院分区表 2025 · MIT 许可</p>
+    <p class="meta">
+      版本 <b data-ver data-ver-static>v1.3.0</b> ·
+      <span class="pill" title="两套指标均为当前最新年度版本，每年更新一次">数据：Clarivate JCR 2025 + 中科院分区表 2025</span>
+      · MIT 许可
+    </p>
   </div>
 </header>
 
 <section>
   <div class="wrap">
     <h2>效果</h2>
-    <div class="demo">
-      <div class="demo-line">
-        <span class="hl lv20">Lancet. 2024</span>
-        <span class="badge lv20">IF 109.0 (Q1) · 中科院1区</span>
-      </div>
-      <div class="demo-line">
-        <span class="hl lv10">Nat Commun. 2025</span>
-        <span class="badge lv10">IF 18.1 (Q1) · 中科院1区</span>
-      </div>
-      <div class="demo-line">
-        <span class="hl lv5">EMBO J. 2024</span>
-        <span class="badge lv5">IF 8.4 (Q1) · 中科院1区</span>
-      </div>
-      <div class="demo-line">
-        <span class="hl lv5">J Affect Disord. 2023</span>
-        <span class="badge lv5">IF 5.7 (Q1) · 中科院2区</span>
-      </div>
-      <div class="demo-line">
-        <span class="hl lv3">Front Neurol. 2024</span>
-        <span class="badge lv3">IF 3.3 (Q2) · 中科院3区</span>
-      </div>
-      <div class="demo-line">
-        <span class="hl lv0">PLoS One. 2024</span>
-        <span class="badge lv0">IF 2.8 (Q2) · 中科院3区</span>
-      </div>
+    <div class="shot">
+      <img src="./img/effect-search.png" alt="Pubmed IF Tag 1.3.0 效果：PubMed 结果页上方的筛选条、按 IF 分档着色的徽章，以及鼠标悬停时展开的期刊信息卡" loading="lazy">
     </div>
+    <p class="figcap">
+      真实渲染：同样的 DOM 与内置期刊库数据。上方是常驻筛选条（IF 分档 / JCR / 中科院 / Top / 未收录 + 导出），
+      每条结果后面的彩色块是 IF 徽章，鼠标停在徽章上会展开期刊详情卡，点击徽章则复制该刊信息。
+    </p>
     <div class="legend">
       <span><i class="dot" style="background:#00663F"></i>IF ≥ 20</span>
-      <span><i class="dot" style="background:#2E9968"></i>IF ≥ 10</span>
-      <span><i class="dot" style="background:#F2CD76"></i>IF ≥ 5</span>
-      <span><i class="dot" style="background:#DD8344"></i>IF ≥ 3</span>
-      <span><i class="dot" style="background:#704264"></i>低于 3（其他）</span>
+      <span><i class="dot" style="background:#2E9968"></i>10 ≤ IF &lt; 20</span>
+      <span><i class="dot" style="background:#F2CD76"></i>5 ≤ IF &lt; 10</span>
+      <span><i class="dot" style="background:#DD8344"></i>3 ≤ IF &lt; 5</span>
+      <span><i class="dot" style="background:#704264"></i>IF &lt; 3（其他）</span>
     </div>
   </div>
 </section>
@@ -167,12 +231,20 @@
         <p>引用行的「期刊缩写. 年份」按 IF 等级上色加粗，后面跟 IF 与分区徽章，扫一眼就能筛掉低分文献。</p>
       </div>
       <div class="card">
-        <h3>文章详情页标注</h3>
-        <p>详情页引用行末尾追加同样的徽章，不用来回切页面查期刊。</p>
+        <h3>结果页筛选（1.3.0）</h3>
+        <p>结果列表上方常驻一条筛选条：按 IF 档位、JCR Q1–Q4、中科院 1–4 区、Top 组合过滤，只显示你要的文献，并实时告诉你「显示 X / Y 条」。</p>
       </div>
       <div class="card">
-        <h3>JCR 分区</h3>
-        <p>每条都带 Q1–Q4 分区，判断期刊层级更直观。</p>
+        <h3>导出 CSV（1.3.0）</h3>
+        <p>把当前筛选后看得到的条目导出成 CSV：期刊、年份、IF、JCR、中科院、Top、标题、PMID、链接。直接进 Excel 或 EndNote 前的清单。</p>
+      </div>
+      <div class="card">
+        <h3>悬停信息卡（1.3.0）</h3>
+        <p>鼠标停在徽章上，弹出该刊全称、缩写、IF、JCR 分区、中科院分区与数据版本，不用点开任何页面。</p>
+      </div>
+      <div class="card">
+        <h3>文章详情页标注</h3>
+        <p>详情页引用行末尾追加同样的徽章，不用来回切页面查期刊。</p>
       </div>
       <div class="card">
         <h3>一键更新期刊库</h3>
@@ -188,7 +260,7 @@
       </div>
       <div class="card">
         <h3>点击徽章复制</h3>
-        <p>点一下 IF 徽章，就把「期刊全称 IF 14.7 (Q1)」复制进剪贴板，写综述引文时直接粘。</p>
+        <p>点一下 IF 徽章，就把「期刊全称 IF 14.7 (Q1) 中科院1区」复制进剪贴板，写综述引文时直接粘。</p>
       </div>
       <div class="card">
         <h3>隐私</h3>
@@ -201,7 +273,11 @@
 <section id="feedback">
   <div class="wrap">
     <h2>反馈</h2>
-    <p class="lead">按一句话说清楚就行。期刊没标签的，只填刊名 —— IF 和分区系统会自己从 JCR 表里查，不用你去查。</p>
+    <p class="lead">
+      填一句话就行，点「生成反馈文本」会直接复制到剪贴板 —— 粘到
+      <a href="https://github.com/lovest117/pubmed-if-tag/issues/new/choose">GitHub Issue</a>
+      里，或者随手发给开发者都可以，<b>不需要登录</b>。期刊没标签的，只填刊名，IF 和分区系统自己查。
+    </p>
 
     <div class="tabs">
       <button class="tab active" data-tab="journal">期刊没标签</button>
@@ -211,17 +287,26 @@
 
     <div class="panel active" id="panel-journal">
       <label for="journalName">期刊名称</label>
-      <input id="journalName" placeholder="Nat Commun（PubMed 引用行里怎么写就怎么填，全称也行）">
+      <input id="journalName" placeholder="Neurochem Int.（PubMed 引用行里怎么写就怎么填，全称也行）" autocomplete="off">
+      <div id="journalLookup" class="lookup"></div>
       <label for="journalLink">文献链接或 PMID（可选）</label>
-      <input id="journalLink" placeholder="https://pubmed.ncbi.nlm.nih.gov/41253842/">
-      <button class="btn btn-primary" id="sendJournal">提交</button>
-      <p class="hint">提交后机器人会直接查表写进期刊库，你回插件点一次「更新期刊数据」就能拿到。</p>
+      <input id="journalLink" placeholder="https://pubmed.ncbi.nlm.nih.gov/41253842/" autocomplete="off">
+      <div class="actions">
+        <button class="btn btn-primary" id="genJournal">生成反馈文本</button>
+        <a class="minor" id="issueJournal" href="https://github.com/lovest117/pubmed-if-tag/issues/new/choose" target="_blank" rel="noopener">或去 GitHub 提交</a>
+      </div>
+      <textarea id="outJournal" class="out" rows="8" readonly></textarea>
+      <p class="hint">生成后点一下文本框即可全选复制；已帮你复制好的话直接粘贴就行。</p>
     </div>
 
     <div class="panel" id="panel-idea">
       <label for="ideaText">你的想法</label>
-      <textarea id="ideaText" rows="4" placeholder="希望标签里带五年影响因子"></textarea>
-      <button class="btn btn-primary" id="sendIdea">提交</button>
+      <textarea id="ideaText" rows="4" placeholder="希望标签里带五年影响因子，或者能按中科院分区一键排除"></textarea>
+      <div class="actions">
+        <button class="btn btn-primary" id="genIdea">生成反馈文本</button>
+        <a class="minor" id="issueIdea" href="https://github.com/lovest117/pubmed-if-tag/issues/new/choose" target="_blank" rel="noopener">或去 GitHub 提交</a>
+      </div>
+      <textarea id="outIdea" class="out" rows="7" readonly></textarea>
     </div>
 
     <div class="panel" id="panel-bug">
@@ -230,21 +315,20 @@
       <div class="row2">
         <div>
           <label for="bugPage">页面链接（可选）</label>
-          <input id="bugPage" placeholder="https://pubmed.ncbi.nlm.nih.gov/37167965/">
+          <input id="bugPage" placeholder="https://pubmed.ncbi.nlm.nih.gov/37167965/" autocomplete="off">
         </div>
         <div>
           <label for="bugVer">插件版本（可选）</label>
-          <input id="bugVer" placeholder="v1.2.1">
+          <input id="bugVer" placeholder="v1.3.0" autocomplete="off">
         </div>
       </div>
-      <button class="btn btn-primary" id="sendBug">提交</button>
-      <p class="hint">提交会打开 GitHub 的新建 Issue 页，截图在那一步直接拖进去即可（网页无法代为上传图片）。</p>
+      <div class="actions">
+        <button class="btn btn-primary" id="genBug">生成反馈文本</button>
+        <a class="minor" id="issueBug" href="https://github.com/lovest117/pubmed-if-tag/issues/new/choose" target="_blank" rel="noopener">或去 GitHub 提交</a>
+      </div>
+      <textarea id="outBug" class="out" rows="8" readonly></textarea>
+      <p class="hint">截图没法通过网页代为上传；走到 GitHub 那一步时可以直接把截图拖进输入框。</p>
     </div>
-
-    <p class="meta" style="margin-top:14px">
-      三步都需要 GitHub 账号，且国内直连 GitHub 可能不畅。打不开时可以把内容发到
-      <a href="https://github.com/lovest117/pubmed-if-tag">仓库</a> 的任意渠道，或直接在插件里点问号反馈。
-    </p>
   </div>
 </section>
 
@@ -268,7 +352,10 @@
 <section id="update">
   <div class="wrap">
     <h2>版本与更新</h2>
-    <p class="lead">当前最新 <b>v1.2.1</b>。侧载安装的版本需要手动换包；等上架商店后，浏览器会自动推送新版本，这一步就不用做了。</p>
+    <p class="lead">
+      当前最新 <b data-ver data-ver-static>v1.3.0</b>。侧载安装的版本需要手动换包；
+      插件里点一下版本号也能查到有没有新版，有新版时那一行会直接给出下载入口。
+    </p>
     <div class="grid">
       <div class="card">
         <h3>换包只需要三步</h3>
@@ -286,12 +373,13 @@
       </div>
     </div>
     <div class="btns" style="margin-top:16px">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.2.1.zip">下载 v1.2.1 安装包</a>
+      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.0.zip">下载 <span data-ver-static>v1.3.0</span> 安装包</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">全部历史版本</a>
     </div>
 
     <h3 style="font-size:14px;font-weight:600;margin:26px 0 10px">更新了什么</h3>
     <table>
+      <tr><th>v1.3.0</th><td>结果页新增<b>常驻筛选条</b>：按 IF 档位（≥20 / 10–20 / 5–10 / 3–5 / &lt;3 / 未收录）、JCR Q1–Q4、中科院 1–4 区与 Top 组合过滤，只显示你要的条目，右侧实时显示「显示 X / Y 条」。<br>新增<b>导出 CSV</b>：只导出当前筛选后可见的条目，含期刊、年份、IF、JCR 分区、中科院分区、Top、标题、PMID 与链接，UTF-8 BOM 编码，Excel 直接打开不乱码。<br>新增<b>徽章悬停信息卡</b>：鼠标停在徽章上展开期刊全称、缩写、IF、JCR、中科院与数据版本，纯展示不挡点击。<br>筛选条会贴在 PubMed 顶部导航下沿常驻；翻页、换关键词后自动重建并保留你的筛选条件。</td></tr>
       <tr><th>v1.2.1</th><td>新增<a href="./search.html">在线查期刊分区</a>：输入期刊全称、PubMed 缩写或 ISSN，即可查影响因子、JCR 分区、中科院大类分区与 Top，全表也能下载成 CSV/JSON。<br>标签配色改为 <b>3 分门槛</b>：IF 低于 3 分（不含）统一归入「其他」，不再按旧阈值着绿。<br>期刊库修正 3 本可按刊名对上、但分区表 ISSN 字段缺失的刊（Computer Law &amp; Security Review、Intelligent Systems in Accounting Finance &amp; Management、Mutation Research），现 12988 条带中科院分区；新增 <code>scripts/verify-journal-db.py</code>，可把内置库与 JCR 2025 / 分区表 2025 逐条比对（已核为零差异）。<br>性能：结果页与详情页的扫描改到浏览器空闲时段，并跳过插件自己插入的标签节点，不再「标注触发重扫」自己触发自己；期刊库查询改走前缀索引，查不到的刊不再逐条扫全表。<br>修复：点过「更新期刊数据」后再升级插件，旧快照会把新版内置库的 IF / 分区盖回旧值（现在旧快照只补内置库没有的刊）；网络卡住时拉取数据不再无限等待，9 秒超时后自动按备用源重试。</td></tr>
       <tr><th>v1.2.0</th><td>期刊库升级到 JCR 2025（2026-06-17 发布），并新增中科院分区表 2025：内置期刊从 3374 本扩到 13575 本，标签显示为「IF 13.6 (Q1) · 中科院1区」；设置页新增「显示中科院分区」开关，Top 期刊在悬停与复制文本里标出。<br>注意：库格式多了中科院字段，1.1.2 及更早版本点「更新期刊数据」会提示解析失败（本地数据不受影响，不会变少），下载本页安装包升级即可正常使用。</td></tr>
       <tr><th>v1.1.2</th><td>PMC 搜索结果页（/search/）也显示 IF 标签：逐条读取结果列表里 citation-part 的刊名并查表，命中就把「刊名. 年份」高亮、行尾追加 IF/分区徽章；翻页与排序后由页面监听自动重新标注。</td></tr>
@@ -315,12 +403,12 @@
       <tr><th>api.github.com</th><td>点「更新期刊数据」或点版本号检查更新时，读取仓库里的期刊数据文件或版本号。</td></tr>
       <tr><th>cdn.jsdelivr.net</th><td>同上，作为备用数据源（GitHub 直连不稳定时使用）。</td></tr>
       <tr><th>raw.githubusercontent.com</th><td>同上，第三个备用源。</td></tr>
-      <tr><th>pubmed.ncbi.nlm.nih.gov</th><td>只在 PubMed 页面上读取页面里的期刊名与年份，用于匹配标签；不修改页面以外的任何内容。</td></tr>
+      <tr><th>pubmed.ncbi.nlm.nih.gov</th><td>只在 PubMed 页面上读取页面里的期刊名与年份，用于匹配标签；在你点「导出 CSV」时由本地生成文件，不上传。</td></tr>
     </table>
     <p class="meta" style="margin-top:12px">
       不申请 <code>tabs</code>、<code>history</code>、<code>webRequest</code>、<code>cookies</code> 等权限，
       不读取搜索历史与浏览记录，不嵌入任何统计或广告脚本，不向任何服务器发送你的使用数据。
-      反馈由你主动在 GitHub 或本页提交，内容仅包含你填写的期刊名或问题描述。
+      反馈文本由你的浏览器本地生成，复制到哪由你决定。
     </p>
   </div>
 </section>
@@ -333,8 +421,16 @@
       <p>先确认「加载解压缩的扩展」选中的目录里有 manifest.json，且扩展开关是开启状态。然后回到 PubMed 按 Ctrl+F5。如果之前加载过旧目录，那个目录被移动或删除后扩展会失效，需要删掉旧条目、重新加载当前目录。</p>
     </details>
     <details>
+      <summary>筛选条为什么有时看不见</summary>
+      <p>筛选条只出现在搜索结果页（有结果列表时），文章详情页和 PMC 页面不显示。往下滚动时它会贴在 PubMed 顶部导航的下沿常驻；如果结果被筛到 0 条，筛选条仍然在，点「全部」即可还原。</p>
+    </details>
+    <details>
+      <summary>导出 CSV 里为什么只有几条</summary>
+      <p>导出的范围是<b>当前筛选后可见的条目</b>，这是刻意设计的：先把不想要的筛掉，再导出就是干净的清单。想要全部就点「全部」再导出。</p>
+    </details>
+    <details>
       <summary>某个期刊没有 IF 标签</summary>
-      <p>说明库里还没收录，或者 PubMed 显示的缩写与库里写法不一致。点插件图标 →「反馈与建议」，只填刊名就行 —— IF 和分区由系统从 JCR 表自动查，补录后你在弹窗点一次「更新期刊数据」就能拿到。</p>
+      <p>说明库里还没收录，或者 PubMed 显示的缩写与库里写法不一致。在上面反馈区只填刊名就行 —— IF 和分区由系统从内置库自动查，补录后你在弹窗点一次「更新期刊数据」就能拿到。</p>
     </details>
     <details>
       <summary>点「更新期刊数据」没反应或报错</summary>
@@ -356,35 +452,41 @@
     Pubmed IF Tag · MIT License · 仅用于个人文献筛选，不提供任何形式的期刊评价结论<br>
     <a href="#feedback">反馈</a> ·
     <a href="#update">版本更新</a> ·
+    <a href="./search.html">期刊查询</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag">GitHub</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
   </div>
 </footer>
 
+<div class="toast" id="toast"></div>
+
 <script>
 (function () {
+  'use strict';
+
   var REPO = 'lovest117/pubmed-if-tag';
+  var FALLBACK_VER = 'v1.3.0';
 
-  function openIssue(title, body) {
-    var url = 'https://github.com/' + REPO + '/issues/new?title=' +
-      encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
-    window.open(url, '_blank', 'noopener');
+  /* ---------- 版本号：以 version.json 为准，静态值只是兜底 ---------- */
+  function applyVersion(v) {
+    if (!v) return;
+    var tag = /^v/.test(v.version) ? v.version : ('v' + v.version);
+    document.querySelectorAll('[data-ver]').forEach(function (el) { el.textContent = tag; });
+    if (v.zip) {
+      document.querySelectorAll('[data-dl]').forEach(function (a) {
+        a.setAttribute('href', './download/' + v.zip);
+      });
+    }
+    var bugVer = document.getElementById('bugVer');
+    if (bugVer) bugVer.placeholder = tag;
   }
 
-  function val(id) {
-    var el = document.getElementById(id);
-    return el ? el.value.trim() : '';
-  }
+  fetch('./version.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(applyVersion)
+    .catch(function () { /* 保留静态兜底 */ });
 
-  function need(el) {
-    if (!el) return false;
-    el.style.borderColor = '#dc2626';
-    el.focus();
-    setTimeout(function () { el.style.borderColor = ''; }, 2500);
-    return false;
-  }
-
-  // 三个 tab
+  /* ---------- tab 切换 ---------- */
   var tabs = [].slice.call(document.querySelectorAll('.tab'));
   var panels = [].slice.call(document.querySelectorAll('.panel'));
 
@@ -397,35 +499,269 @@
     t.addEventListener('click', function () { select(t.dataset.tab); });
   });
 
-  // 允许用 ?tab=idea 直达对应面板
   var q = (location.search.match(/tab=([a-z]+)/) || [])[1];
   if (q && document.getElementById('panel-' + q)) select(q);
 
-  document.getElementById('sendJournal').addEventListener('click', function () {
-    var name = val('journalName');
-    if (!name) return need(document.getElementById('journalName'));
-    var link = val('journalLink');
-    var body = '### 期刊名称\n' + name + '\n\n' +
-      (link ? '### 文献链接\n' + link + '\n\n' : '') +
-      '（由主页表单填入）\n';
-    openIssue('[期刊未收录] ' + name, body);
-  });
+  /* ---------- 复制到剪贴板 ---------- */
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
 
-  document.getElementById('sendIdea').addEventListener('click', function () {
-    var idea = val('ideaText');
-    if (!idea) return need(document.getElementById('ideaText'));
-    openIssue('[建议] ' + idea.slice(0, 40), '### 你的想法\n' + idea + '\n');
-  });
+  function toast(msg) {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
 
-  document.getElementById('sendBug').addEventListener('click', function () {
-    var what = val('bugText');
-    if (!what) return need(document.getElementById('bugText'));
-    var page = val('bugPage');
-    var ver = val('bugVer');
-    var body = '### 发生了什么\n' + what + '\n\n' +
-      (page ? '### 相关页面\n' + page + '\n\n' : '') +
-      (ver ? '### 插件版本\n' + ver + '\n\n' : '');
-    openIssue('[问题] ' + what.slice(0, 40), body);
+  function copyText(text) {
+    var done = function () { toast('已复制，粘贴即可'); return true; };
+    var fail = function () { toast('浏览器拒绝了自动复制，请手动全选文本框'); return false; };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(done, function () {
+        return legacyCopy(text) ? done() : fail();
+      });
+    }
+    return legacyCopy(text) ? done() : fail();
+  }
+
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  function showOut(el, text) {
+    if (!el) return;
+    el.value = text;
+    el.classList.add('show');
+    el.focus();
+    el.select();
+  }
+
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function flag(el) {
+    if (!el) return;
+    el.style.borderColor = '#dc2626';
+    el.focus();
+    setTimeout(function () { el.style.borderColor = ''; }, 2500);
+  }
+
+  function issueHref(title, body) {
+    return 'https://github.com/' + REPO + '/issues/new?title=' +
+      encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
+  }
+
+  /* ---------- 期刊库：按需加载 + 本地查询 ---------- */
+  var LIB = null;
+  var LIB_LOADING = null;
+
+  function norm(s) {
+    return String(s || '')
+      .toLowerCase()
+      .replace(/\./g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function loadLibrary() {
+    if (LIB) return Promise.resolve(LIB);
+    if (LIB_LOADING) return LIB_LOADING;
+    LIB_LOADING = fetch('./data/journals.json')
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        LIB = rows.map(function (r) {
+          return {
+            key: r[0], abbr: r[1], name: r[2], issn: r[3],
+            ifv: +r[4], q: r[5], cn: r[6], top: r[7], cat: r[8] || '',
+            nk: norm(r[0]), nn: norm(r[2]), ni: String(r[3] || '').replace(/[^0-9xX]/g, '')
+          };
+        });
+        return LIB;
+      })
+      .catch(function () { LIB_LOADING = null; return null; });
+    return LIB_LOADING;
+  }
+
+  function findJournal(raw) {
+    if (!LIB) return null;
+    var t = norm(raw);
+    if (!t) return null;
+    var digits = raw.replace(/[^0-9xX]/g, '');
+
+    var exactKey = LIB.find(function (e) { return e.nk === t; });
+    if (exactKey) return exactKey;
+
+    if (digits.length >= 4) {
+      var byIssn = LIB.find(function (e) { return e.ni && e.ni === digits; });
+      if (byIssn) return byIssn;
+    }
+
+    var exactName = LIB.find(function (e) { return e.nn === t; });
+    if (exactName) return exactName;
+
+    var prefix = LIB.find(function (e) {
+      return e.nk.indexOf(t) === 0 || e.nn.indexOf(t) === 0;
+    });
+    if (prefix) return prefix;
+
+    if (t.length >= 4) {
+      var contains = LIB.find(function (e) {
+        return e.nk.indexOf(t) !== -1 || e.nn.indexOf(t) !== -1;
+      });
+      if (contains) return contains;
+    }
+    return null;
+  }
+
+  var lookupEl = document.getElementById('journalLookup');
+  var lookupTimer = null;
+  var lookupSeq = 0;
+
+  function renderLookup(raw) {
+    if (!lookupEl) return;
+    var input = document.getElementById('journalName');
+    var name = String(raw || '').trim();
+
+    if (!name) {
+      lookupEl.textContent = '';
+      lookupEl.className = 'lookup';
+      return;
+    }
+
+    lookupEl.className = 'lookup wait';
+    lookupEl.textContent = '正在比对内置库…';
+
+    var seq = ++lookupSeq;
+    loadLibrary().then(function (lib) {
+      if (seq !== lookupSeq) return;
+      if (!lib) {
+        lookupEl.className = 'lookup wait';
+        lookupEl.textContent = '库文件没取到（可能网络受限），仍然可以提交反馈。';
+        return;
+      }
+      var hit = findJournal(name);
+      if (hit) {
+        lookupEl.className = 'lookup ok';
+        lookupEl.textContent = '✓ 库里已有：' + (hit.name || hit.key) +
+          '（IF ' + hit.ifv + (hit.q ? ' · ' + hit.q : '') +
+          (hit.cn ? ' · 中科院' + hit.cn + '区' + (hit.top ? ' Top' : '') : '') + '）';
+      } else {
+        lookupEl.className = 'lookup no';
+        lookupEl.textContent = '库里暂无这本刊，提交后会补进来。';
+      }
+      if (input) input.style.borderColor = '';
+    });
+  }
+
+  var journalName = document.getElementById('journalName');
+  if (journalName) {
+    journalName.addEventListener('input', function () {
+      clearTimeout(lookupTimer);
+      var v = journalName.value;
+      lookupTimer = setTimeout(function () { renderLookup(v); }, 320);
+    });
+    journalName.addEventListener('blur', function () { renderLookup(journalName.value); });
+  }
+
+  /* ---------- 三段反馈文本 ---------- */
+  function buildJournalText(name, link) {
+    var parts = [
+      '### 期刊名称',
+      name,
+      ''
+    ];
+    if (link) parts.push('### 文献链接', link, '');
+    parts.push('### 说明');
+    parts.push('PubMed 页面上没有出现 IF 标签，请补录这本期刊。');
+    parts.push('（IF 与分区由系统从内置库自动查，无需填写）');
+    parts.push('');
+    parts.push('### 来源');
+    parts.push('Pubmed IF Tag 官网反馈区 · ' + (readVersion() || FALLBACK_VER));
+    return parts.join('\n');
+  }
+
+  function buildIdeaText(idea) {
+    return [
+      '### 你的想法',
+      idea,
+      '',
+      '### 来源',
+      'Pubmed IF Tag 官网反馈区 · ' + (readVersion() || FALLBACK_VER)
+    ].join('\n');
+  }
+
+  function buildBugText(what, page, ver) {
+    var parts = ['### 发生了什么', what, ''];
+    if (page) parts.push('### 相关页面', page, '');
+    if (ver) parts.push('### 插件版本', ver, '');
+    parts.push('### 来源');
+    parts.push('Pubmed IF Tag 官网反馈区');
+    return parts.join('\n');
+  }
+
+  function readVersion() {
+    var el = document.querySelector('[data-ver]');
+    return el ? el.textContent.trim() : '';
+  }
+
+  var btnJournal = document.getElementById('genJournal');
+  if (btnJournal) {
+    btnJournal.addEventListener('click', function () {
+      var name = val('journalName');
+      if (!name) return flag(document.getElementById('journalName'));
+      var link = val('journalLink');
+      var text = buildJournalText(name, link);
+      showOut(document.getElementById('outJournal'), text);
+      copyText(text);
+      var a = document.getElementById('issueJournal');
+      if (a) a.href = issueHref('[期刊未收录] ' + name, text);
+    });
+  }
+
+  var btnIdea = document.getElementById('genIdea');
+  if (btnIdea) {
+    btnIdea.addEventListener('click', function () {
+      var idea = val('ideaText');
+      if (!idea) return flag(document.getElementById('ideaText'));
+      var text = buildIdeaText(idea);
+      showOut(document.getElementById('outIdea'), text);
+      copyText(text);
+      var a = document.getElementById('issueIdea');
+      if (a) a.href = issueHref('[建议] ' + idea.slice(0, 40), text);
+    });
+  }
+
+  var btnBug = document.getElementById('genBug');
+  if (btnBug) {
+    btnBug.addEventListener('click', function () {
+      var what = val('bugText');
+      if (!what) return flag(document.getElementById('bugText'));
+      var text = buildBugText(what, val('bugPage'), val('bugVer') || readVersion());
+      showOut(document.getElementById('outBug'), text);
+      copyText(text);
+      var a = document.getElementById('issueBug');
+      if (a) a.href = issueHref('[问题] ' + what.slice(0, 40), text);
+    });
+  }
+
+  /* 只读文本框：点一下即全选，方便手动复制 */
+  [].slice.call(document.querySelectorAll('.out')).forEach(function (el) {
+    el.addEventListener('click', function () { el.select(); });
+    el.addEventListener('focus', function () { el.select(); });
   });
 })();
 </script>

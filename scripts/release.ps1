@@ -118,6 +118,26 @@ $utf8NoBom = New-Object Text.UTF8Encoding($false)
 [IO.File]::WriteAllText((Join-Path $Root "site\version.json"), $verJson, $utf8NoBom)
 Write-Output ("  version.json：" + $ver)
 
+# 主页 HTML 里的静态兜底版本号与下载链接同步。
+# 页面运行时还会 fetch version.json 覆盖，这两处只是首屏与离线兜底；
+# 不同步的话，页面在 version.json 拉取失败时会显示上一版版本号与失效的下载地址。
+# 只认带 data-ver-static / data-dl-static 的锚点，changelog 里的历史版本号不会被误改。
+$siteIdx = Join-Path $Root "site\index.html"
+if (Test-Path -LiteralPath $siteIdx) {
+  $htmlOld = [IO.File]::ReadAllText($siteIdx, [Text.Encoding]::UTF8)
+  $htmlNew = $htmlOld -replace '(data-ver-static>v)\d+(?:\.\d+)*', ('${1}' + $ver)
+  $htmlNew = $htmlNew -replace '(Pubmed-IF-Tag-v)\d+(?:\.\d+)*\.zip', ('${1}' + $ver + '.zip')
+  if ($htmlNew -ne $htmlOld) {
+    [IO.File]::WriteAllText($siteIdx, $htmlNew, $utf8NoBom)
+    Write-Output ("  index.html 静态版本号已同步为 " + $tag)
+  } else {
+    Write-Output "  index.html 静态版本号无需改动"
+  }
+  if ($htmlNew -notmatch ('data-ver-static>v' + [regex]::Escape($ver))) {
+    throw "index.html 同步后仍不含 data-ver-static>v$ver，检查锚点是否被改动"
+  }
+}
+
 Remove-Item -LiteralPath $profile -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
 

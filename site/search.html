@@ -4,7 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>期刊查询 · Pubmed IF Tag</title>
-<meta name="description" content="输入期刊名、PubMed 缩写或 ISSN，查询 13575 本期刊的影响因子、JCR 分区与中科院大类分区（JCR 2025 + 中科院分区表 2025）。">
+<meta name="description" content="输入期刊名、PubMed 缩写或 ISSN，查询 13575 本期刊的影响因子、JCR 分区与中科院大类分区（JCR 2025 + 中科院分区表 2025），可按 IF 档位、JCR 与中科院分区筛选。">
+<link rel="canonical" href="https://pubmed-if-tag.pages.dev/search.html">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#00663F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pubmed IF Tag">
+<meta property="og:title" content="期刊查询 · Pubmed IF Tag">
+<meta property="og:description" content="输入期刊名、PubMed 缩写或 ISSN，查询影响因子、JCR 分区与中科院分区，支持按分区筛选，共 13575 本。">
+<meta property="og:url" content="https://pubmed-if-tag.pages.dev/search.html">
+<meta property="og:image" content="https://pubmed-if-tag.pages.dev/img/effect-search.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   :root{
     --ink:#0f2b46; --sub:#5b6b7c; --line:#e3e9f0; --bg:#f7f9fc; --card:#fff;
@@ -21,7 +31,7 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Roboto,sans-serif;
   }
   .wrap{max-width:1120px;margin:0 auto;padding:0 28px}
-  header{padding:34px 0 26px;border-bottom:1px solid var(--line);background:#fff}
+  header{padding:34px 0 22px;border-bottom:1px solid var(--line);background:#fff}
   .back{display:inline-block;font-size:13px;color:var(--sub);text-decoration:none;margin-bottom:14px}
   .back:hover{color:var(--brand)}
   h1{font-size:26px;margin:0 0 8px;letter-spacing:.3px}
@@ -40,14 +50,30 @@
   }
   #clr:hover{background:#e2e8f0;color:var(--ink)}
   .stat{margin:12px 0 0;font-size:12.5px;color:#8a99a8}
-  .dl{margin:14px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+  .dl{margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap}
   .dl a{
     font-size:12.5px;color:var(--sub);text-decoration:none;border:1px solid var(--line);
     border-radius:6px;padding:4px 10px;background:#fff;transition:.15s;
   }
   .dl a:hover{border-color:#b9c6d6;color:var(--ink)}
+  /* 筛选条 */
+  .filters{
+    margin:16px 0 0;background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;
+  }
+  .fgrp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .flab{font-size:12px;color:#98a7b6;font-weight:600;letter-spacing:.3px}
+  .fchip{
+    font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;
+    padding:3px 10px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;color:var(--sub);transition:.14s;display:inline-flex;align-items:center;gap:5px;
+  }
+  .fchip:hover{border-color:#b9c6d6;color:var(--ink)}
+  .fchip[data-on]{background:var(--brand);border-color:var(--brand);color:#fff}
+  .fdot{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .fcount{margin-left:auto;font-size:12px;color:#8a99a8;white-space:nowrap}
   main{padding:0 0 40px}
-  .tbl{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:18px}
+  .tbl{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:14px}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   thead th{
     text-align:left;padding:10px 12px;background:#fbfcfe;color:var(--sub);
@@ -71,7 +97,7 @@
   .top{display:inline-block;margin-left:6px;padding:0 5px;border-radius:4px;font-size:10.5px;font-weight:700;color:#7c3aed;background:#f3e8ff}
   .cat{font-size:12px;color:var(--sub);line-height:1.5}
   .empty{padding:38px 16px;text-align:center;color:#8a99a8;font-size:13.5px}
-  .hint{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:18px;font-size:13px;color:var(--sub)}
+  .hint{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:14px;font-size:13px;color:var(--sub)}
   .hint code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-size:12px;font-family:ui-monospace,Consolas,monospace}
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--sub)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
@@ -81,6 +107,8 @@
     .wrap{padding:0 16px}
     header{padding:24px 0 20px}
     h1{font-size:22px}
+    .filters{padding:8px 10px;gap:6px 10px}
+    .fcount{margin-left:0;width:100%}
     thead{display:none}
     tbody td{display:block;padding:4px 14px;border:none}
     tbody tr{display:block;padding:12px 0;border-bottom:1px solid #f0f4f9}
@@ -101,21 +129,41 @@
     <p class="lead">输入期刊全称、PubMed 缩写或 ISSN，查该刊的影响因子、JCR 分区与中科院大类分区。数据与插件内置库同源，共 13575 本（JCR 2025 + 中科院分区表 2025）。</p>
     <div class="box">
       <input id="q" type="search" autocomplete="off" spellcheck="false" autofocus
-             placeholder="Lancet / J Neurosci / Nature Reviews / 0140-6736">
+             placeholder="Lancet / J Neurosci / 0140-6736">
       <button id="clr" title="清空">×</button>
     </div>
     <p class="stat" id="stat">正在加载数据…</p>
+    <div class="filters" id="filters">
+      <div class="fgrp">
+        <span class="flab">IF</span>
+        <button class="fchip" data-k="tier" data-v="" data-on>全部</button>
+        <button class="fchip" data-k="tier" data-v="t20"><i class="fdot" style="background:#00663F"></i>≥20</button>
+        <button class="fchip" data-k="tier" data-v="t10"><i class="fdot" style="background:#2E9968"></i>10–20</button>
+        <button class="fchip" data-k="tier" data-v="t5"><i class="fdot" style="background:#F2CD76"></i>5–10</button>
+        <button class="fchip" data-k="tier" data-v="t3"><i class="fdot" style="background:#DD8344"></i>3–5</button>
+        <button class="fchip" data-k="tier" data-v="t0"><i class="fdot" style="background:#704264"></i>&lt;3</button>
+      </div>
+      <div class="fgrp">
+        <span class="flab">JCR</span>
+        <button class="fchip" data-k="q" data-v="Q1">Q1</button>
+        <button class="fchip" data-k="q" data-v="Q2">Q2</button>
+        <button class="fchip" data-k="q" data-v="Q3">Q3</button>
+        <button class="fchip" data-k="q" data-v="Q4">Q4</button>
+      </div>
+      <div class="fgrp">
+        <span class="flab">中科院</span>
+        <button class="fchip" data-k="cn" data-v="1">1区</button>
+        <button class="fchip" data-k="cn" data-v="2">2区</button>
+        <button class="fchip" data-k="cn" data-v="3">3区</button>
+        <button class="fchip" data-k="cn" data-v="4">4区</button>
+        <button class="fchip" data-k="top" data-v="1">Top</button>
+      </div>
+      <span class="fcount" id="fcount"></span>
+    </div>
     <div class="dl">
       <a href="./data/journals.csv" download>下载 CSV（Excel 可开）</a>
       <a href="./data/journals.json" download>下载 JSON</a>
       <a href="./">安装扩展</a>
-    </div>
-    <div class="legend">
-      <span><i class="dot" style="background:#00663F"></i>IF ≥ 20</span>
-      <span><i class="dot" style="background:#2E9968"></i>10–20</span>
-      <span><i class="dot" style="background:#F2CD76"></i>5–10</span>
-      <span><i class="dot" style="background:#DD8344"></i>3–5</span>
-      <span><i class="dot" style="background:#704264"></i>低于 3</span>
     </div>
   </div>
 </header>
@@ -141,6 +189,7 @@
     <div class="hint" id="hint" style="display:none">
       没查到？<b>可能是这本刊不在 JCR 收录范围内</b>，也可能是我们漏了。
       到 <a href="./#feedback">反馈页</a>提交刊名即可，收到后会核对着补进库。
+      也可以点上面的分区筛选，直接看某档位里都有哪些刊。
     </div>
   </div>
 </main>
@@ -155,13 +204,20 @@
 (function () {
   var ALL = [];
   var loaded = false;
+  var LIMIT = 60;
+
   var elQ = document.getElementById('q');
   var elRows = document.getElementById('rows');
   var elStat = document.getElementById('stat');
   var elEmpty = document.getElementById('empty');
   var elClr = document.getElementById('clr');
   var elHint = document.getElementById('hint');
+  var elCount = document.getElementById('fcount');
+  var elFilters = document.getElementById('filters');
   var timer = null;
+
+  /* 筛选状态：不写进 localStorage，刷新即回到全部 */
+  var F = { tier: '', q: '', cn: '', top: false };
 
   function norm(s) {
     return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -176,10 +232,25 @@
     if (v >= 3) return 'lv3';
     return 'lv0';
   }
+  function tierOf(v) {
+    if (v >= 20) return 't20';
+    if (v >= 10) return 't10';
+    if (v >= 5) return 't5';
+    if (v >= 3) return 't3';
+    return 't0';
+  }
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
     });
+  }
+
+  function match(e) {
+    if (F.tier && tierOf(e.if) !== F.tier) return false;
+    if (F.q && e.q !== F.q) return false;
+    if (F.cn && String(e.cn) !== F.cn) return false;
+    if (F.top && !e.top) return false;
+    return true;
   }
 
   function rowHtml(e) {
@@ -203,7 +274,7 @@
     if (!list.length) {
       elRows.innerHTML = '';
       elEmpty.style.display = '';
-      elEmpty.textContent = '没有匹配的期刊';
+      elEmpty.textContent = F.tier || F.q || F.cn || F.top ? '当前筛选条件下没有期刊，换个条件或点「全部」' : '没有匹配的期刊';
       elHint.style.display = '';
       return;
     }
@@ -212,9 +283,10 @@
     elRows.innerHTML = list.map(rowHtml).join('');
   }
 
+  /* 全量打分，不截断；筛选后再截前 LIMIT 条 */
   function search(raw) {
     var s = (raw || '').trim();
-    if (!s) return ALL.slice(0, 50);
+    if (!s) return ALL;
     var nq = norm(s);
     var iq = issnKey(s);
     if (!nq && !iq) return [];
@@ -236,20 +308,60 @@
       if (b[1].if !== a[1].if) return b[1].if - a[1].if;
       return a[1].name.localeCompare(b[1].name);
     });
-    return hits.slice(0, 60).map(function (x) { return x[1]; });
+    return hits.map(function (x) { return x[1]; });
   }
 
   function update() {
     if (!loaded) return;
     var s = elQ.value;
     elClr.style.display = s ? 'block' : 'none';
-    var list = search(s);
-    render(list, s ? 1 : 0);
-    if (s.trim()) {
-      elStat.textContent = '匹配 ' + list.length + ' 本（最多显示 60 条）· 库内共 ' + ALL.length + ' 本';
-    } else {
-      elStat.textContent = '库内共 ' + ALL.length + ' 本 · 按影响因子降序显示前 50 本，输入关键词可精确查找';
+
+    var base = search(s);
+    var matched = base.filter(match);
+    var list = matched.slice(0, LIMIT);
+
+    render(list, s.trim() && base.length ? 1 : 0);
+
+    var filtered = F.tier || F.q || F.cn || F.top;
+    if (elCount) {
+      elCount.textContent = filtered
+        ? '筛选：显示 ' + list.length + ' / 符合 ' + matched.length + ' 本'
+        : (s.trim() ? '匹配 ' + base.length + ' 本' : '库内 ' + ALL.length + ' 本');
     }
+
+    if (s.trim()) {
+      elStat.textContent = '匹配 ' + base.length + ' 本（最多显示 ' + LIMIT + ' 条）· 库内共 ' + ALL.length + ' 本';
+    } else {
+      elStat.textContent = '库内共 ' + ALL.length + ' 本 · 按影响因子降序显示前 ' + LIMIT + ' 本，输入关键词可精确查找';
+    }
+  }
+
+  function syncChips() {
+    if (!elFilters) return;
+    Array.prototype.slice.call(elFilters.querySelectorAll('.fchip')).forEach(function (b) {
+      var k = b.dataset.k, v = b.dataset.v;
+      var on;
+      if (k === 'tier') on = (F.tier === v);
+      else if (k === 'q') on = (F.q === v);
+      else if (k === 'cn') on = (F.cn === v);
+      else on = (F.top === true);
+      if (on) b.setAttribute('data-on', '');
+      else b.removeAttribute('data-on');
+    });
+  }
+
+  if (elFilters) {
+    elFilters.addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('.fchip') : null;
+      if (!b) return;
+      var k = b.dataset.k, v = b.dataset.v;
+      if (k === 'tier') F.tier = (F.tier === v ? '' : v);
+      else if (k === 'q') F.q = (F.q === v ? '' : v);
+      else if (k === 'cn') F.cn = (F.cn === v ? '' : v);
+      else if (k === 'top') F.top = !F.top;
+      syncChips();
+      update();
+    });
   }
 
   elQ.addEventListener('input', function () {

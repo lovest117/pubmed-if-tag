@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pubmed-if-tag.pages.dev/sitemap.xml

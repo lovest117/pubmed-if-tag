@@ -45,3 +45,198 @@
   background: #eff6ff;
 }
 
+/* ========== 1.3.0：结果页筛选条 ========== */
+
+.pifh-filter {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 7px 10px;
+  background: #ffffff;
+  border: 1px solid #e3e9f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 43, 70, 0.05);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* 左侧的筛选组允许换行，右侧导出按钮始终贴着右上角不参与换行 */
+.pifh-filter .pifh-main {
+  flex: 0 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pifh-filter .pifh-grp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pifh-filter .pifh-lab {
+  color: #94a3b8;
+  font-size: 11px;
+  margin-right: 1px;
+}
+
+.pifh-chip {
+  padding: 2px 9px;
+  border: 1px solid #dfe6ee;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #41556b;
+  font-family: inherit;
+  font-size: 11.5px;
+  line-height: 1.7;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.pifh-chip:hover {
+  border-color: #b9c6d6;
+  color: #0f2b46;
+}
+
+.pifh-chip[data-on] {
+  background: #0f2b46;
+  border-color: #0f2b46;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.pifh-chip .pifh-chip-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: 0;
+}
+
+.pifh-sep {
+  width: 1px;
+  height: 15px;
+  margin: 0 3px;
+  background: #e8edf3;
+}
+
+.pifh-count {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.pifh-export {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding: 3px 11px;
+  border: 1px solid #cfd9e5;
+  border-radius: 6px;
+  background: #f7fafd;
+  color: #1d4ed8;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.pifh-export:hover {
+  background: #eff4ff;
+  border-color: #b6c6e0;
+}
+
+/* 被筛掉的结果项：用 !important 压过 PubMed 自己的 display 规则 */
+.pifh-hidden {
+  display: none !important;
+}
+
+/* ========== 1.3.0：徽章悬停信息卡 ========== */
+
+.pifh-card {
+  position: fixed;
+  z-index: 9999;
+  width: 252px;
+  padding: 11px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 43, 70, 0.16), 0 2px 6px rgba(15, 43, 70, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #0f2b46;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  /* 纯展示：不挡鼠标，鼠标一离开徽章就收起 */
+  pointer-events: none;
+}
+
+.pifh-card[data-on] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pifh-card .pifh-c-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.pifh-card .pifh-c-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 2px;
+}
+
+.pifh-card .pifh-c-abbr {
+  margin: 2px 0 7px 15px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.pifh-card .pifh-c-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 0;
+  border-top: 1px dashed #eef2f7;
+}
+
+.pifh-card .pifh-c-k {
+  color: #94a3b8;
+}
+
+.pifh-card .pifh-c-v {
+  font-weight: 600;
+  text-align: right;
+}
+
+.pifh-card .pifh-c-foot {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+  color: #a3b1c0;
+  font-size: 10.5px;
+}
+
