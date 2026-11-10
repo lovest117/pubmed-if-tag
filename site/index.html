@@ -104,12 +104,12 @@
       ScholarScope 的免费替代，内置 3374 本期刊（医学与生命科学类 Q1–Q2 全收录），数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
     </p>
     <div class="btns">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.1.1.zip">下载扩展（zip）</a>
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.1.2.zip">下载扩展（zip）</a>
       <a class="btn btn-ghost" href="#feedback">反馈无 IF 标签的期刊</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
     </div>
-    <p class="meta">版本 1.1.1 · 数据来源 Clarivate JCR 2023（2024 年 6 月发布）· MIT 许可</p>
+    <p class="meta">版本 1.1.2 · 数据来源 Clarivate JCR 2023（2024 年 6 月发布）· MIT 许可</p>
   </div>
 </header>
 
@@ -224,7 +224,7 @@
         </div>
         <div>
           <label for="bugVer">插件版本（可选）</label>
-          <input id="bugVer" placeholder="v1.1.1">
+          <input id="bugVer" placeholder="v1.1.2">
         </div>
       </div>
       <button class="btn btn-primary" id="sendBug">提交</button>
@@ -258,7 +258,7 @@
 <section id="update">
   <div class="wrap">
     <h2>版本与更新</h2>
-    <p class="lead">当前最新 <b>v1.1.1</b>。侧载安装的版本需要手动换包；等上架商店后，浏览器会自动推送新版本，这一步就不用做了。</p>
+    <p class="lead">当前最新 <b>v1.1.2</b>。侧载安装的版本需要手动换包；等上架商店后，浏览器会自动推送新版本，这一步就不用做了。</p>
     <div class="grid">
       <div class="card">
         <h3>换包只需要三步</h3>
@@ -276,12 +276,13 @@
       </div>
     </div>
     <div class="btns" style="margin-top:16px">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.1.1.zip">下载 v1.1.1 安装包</a>
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.1.2.zip">下载 v1.1.2 安装包</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">全部历史版本</a>
     </div>
 
     <h3 style="font-size:14px;font-weight:600;margin:26px 0 10px">更新了什么</h3>
     <table>
+      <tr><th>v1.1.2</th><td>PMC 搜索结果页（/search/）也显示 IF 标签：逐条读取结果列表里 citation-part 的刊名并查表，命中就把「刊名. 年份」高亮、行尾追加 IF/分区徽章；翻页与排序后由页面监听自动重新标注。</td></tr>
       <tr><th>v1.1.1</th><td>修复 PMC 全文页不显示标签：注入范围补上 pmc.ncbi.nlm.nih.gov（含旧路径 www.ncbi.nlm.nih.gov/pmc）；内容脚本新增 PMC 分支——从标题下方引文行里的刊名按钮取缩写查表，命中后高亮刊名并在其后追加 IF/分区徽章；PMC 页上「反馈未收录」的链接改为读页面 meta 里的 PMID。</td></tr>
       <tr><th>v1.1.0</th><td>弹窗版式重排：版本号移到标题右侧，点一下仍可检查新版本；主页入口并入首行 IF 图标；「恢复内置库」升为主位，悬停时在面板内展开作用说明；「反馈与建议」压暗、「打开 GitHub」换成图标，收在下一行右侧；页脚「仅自用」改为版权声明。版本提示文案简化为「新版本 vX.Y.Z」，点一下直接下载安装包。</td></tr>
       <tr><th>v1.0.11</th><td>检查更新改读主页的 version.json，避开 GitHub API 的匿名限流（每小时 60 次，撞上就报「无法检查」）；页脚版本号与「主页」之间补上分隔符，不再黏成「v1.0.10主页」。</td></tr>

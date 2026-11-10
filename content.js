@@ -463,6 +463,37 @@
    *          . 2014 Nov 14;22(5):838–851. doi: <a …>
    * PMC 把刊名缩写放在 <button> 里，按钮文本正好是库里的键形式，直接查表即可
    */
+  /**
+   * PMC 搜索结果页：每条结果的刊名在 .citation-part 文本开头，形如
+   * "J Investig Med High Impact Case Rep. 2021 Jan-Dec;9:2324709621990768. doi: ..."
+   */
+  function processPmcSearchPage() {
+    if (!cfg().showSearch) return;
+
+    document.querySelectorAll('.docsum-wrap .citation-part').forEach((el) => {
+      if (el.classList.contains('pmcid')) return;        // "PMCID: PMC..." 不是刊名
+      if (el.querySelector('[data-pifh-badge]')) return; // 已标过
+
+      const text = el.textContent || '';
+      const split = splitCitationForHighlight(text);     // → { highlight: "刊名. 2021", rest: ... }
+      if (!split) return;
+
+      const name = split.highlight.replace(/\.\s+(?:19|20)\d{2}$/, '').trim();
+      if (!name || name.length > 60 || !looksLikeJournal(name)) return;
+
+      const ifInfo = lookupIF(name);
+      if (!ifInfo) return;
+
+      // 这一行若带链接等子元素，重建会破坏结构，只在行尾挂徽章
+      if (el.children.length > 0) {
+        el.appendChild(document.createTextNode(' '));
+        el.appendChild(createIFBadge(ifInfo));
+        return;
+      }
+      highlightCitation(el, ifInfo);
+    });
+  }
+
   function processPmcPage() {
     if (!cfg().showDetail) return;
     if (document.querySelector('[data-pifh-badge]')) return;
@@ -520,9 +551,13 @@
    */
   function processPage() {
     const url = window.location.href;
-    // PMC 全文页要优先判断：它的路径也以数字结尾，落到 PubMed 详情页逻辑会扫全页乱标
+    // PMC 要优先判断：它的路径也以数字结尾，落到 PubMed 详情页逻辑会扫全页乱标
     if (/pmc\.ncbi\.nlm\.nih\.gov/.test(url) || /ncbi\.nlm\.nih\.gov\/pmc\//.test(url)) {
-      processPmcPage();
+      if (/\/search/i.test(location.pathname)) {
+        processPmcSearchPage();
+      } else {
+        processPmcPage();
+      }
       return;
     }
     const isSearch = url.includes('/?') || /pubmed\.ncbi\.nlm\.nih\.gov\/$/.test(url);
