@@ -84,6 +84,8 @@ def load_index():
                 'name': r['name'],
                 'if': float(r['if']),
                 'q': r['q'],
+                'cn': (r.get('cn') or '').strip(),
+                'top': (r.get('top') or '0').strip(),
             }
     return rows
 
@@ -142,11 +144,10 @@ def main():
     if not row:
         done('miss', '期刊库里没有「%s」，需要人工核对（可能是新刊或缩写写法不同）' % raw, matched=raw)
 
-    if row['q'] not in ('Q1', 'Q2'):
-        done('out_of_scope',
-             '「%s」是 %s，不在收录范围（库里只收 Q1–Q2，Q3/Q4 不显示标签）'
-             % (row['name'], row['q']),
-             key=row['key'], name=row['name'], q=row['q'], abbr=row['abbr'], matched=how)
+    # 库已收录 Q1–Q4 全部有 IF 的期刊，不再按分区拦截
+    if not row['q']:
+        done('miss', '「%s」在 JCR 2025 里没有分区记录，需人工核对' % row['name'],
+             key=row['key'], name=row['name'], abbr=row['abbr'], matched=how)
 
     # 读库，判重
     with io.open(DB_PATH, 'r', encoding='utf-8') as fh:
@@ -156,8 +157,9 @@ def main():
              key=row['key'], name=row['name'], q=row['q'], abbr=row['abbr'], matched=how)
 
     display = (row['abbr'] or row['name']).replace('"', "'")
-    entry = '  "%s": { if: %g, q: "%s", name: "%s" },\n' % (
-        row['key'], row['if'], row['q'], row['name'].replace('"', "'"))
+    entry = '  "%s": { if: %g, q: "%s", name: "%s", cn: %s, top: %s },\n' % (
+        row['key'], row['if'], row['q'], row['name'].replace('"', "'"),
+        row['cn'] or 'null', row['top'] or '0')
 
     idx = text.rfind('};')
     if idx == -1:

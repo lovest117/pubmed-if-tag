@@ -29,11 +29,12 @@
     },
   ];
 
-  // 单行条目格式：  "key": { if: 12.2, q: "Q1", name: "Gut Microbes" },
-  const ENTRY_RE = /^\s*"([^"]+)"\s*:\s*\{\s*if\s*:\s*([0-9]*\.?[0-9]+)\s*,\s*q\s*:\s*"([^"]*)"\s*,\s*name\s*:\s*"([^"]*)"\s*\}\s*,?\s*$/;
+  // 单行条目格式：  "key": { if: 12.2, q: "Q1", name: "Gut Microbes", cn: 2, top: 0 },
+  // cn / top 为可选的第二段（旧版远程库没有这两个字段，仍需兼容）
+  const ENTRY_RE = /^\s*"([^"]+)"\s*:\s*\{\s*if\s*:\s*([0-9]*\.?[0-9]+)\s*,\s*q\s*:\s*"([^"]*)"\s*,\s*name\s*:\s*"([^"]*)"(?:\s*,\s*cn\s*:\s*(null|[1-4])\s*,\s*top\s*:\s*([01]))?\s*\}\s*,?\s*$/;
 
   /**
-   * 解析 journal-if.js 文本，返回 { 小写期刊名: {if, q, name} }
+   * 解析 journal-if.js 文本，返回 { 小写期刊名: {if, q, name, cn, top} }
    * 先按行解析（快且稳），条数异常时退回整体 JSON 化解析
    */
   function parseJournalJs(text) {
@@ -46,7 +47,13 @@
       const key = m[1].toLowerCase().trim();
       const val = parseFloat(m[2]);
       if (!key || !isFinite(val)) continue;
-      entries[key] = { if: val, q: m[3], name: m[4] };
+      entries[key] = {
+        if: val,
+        q: m[3],
+        name: m[4],
+        cn: m[5] && m[5] !== 'null' ? parseInt(m[5], 10) : null,
+        top: m[6] === '1',
+      };
     }
     if (Object.keys(entries).length >= 100) return entries;
     return parseByJsonify(text);
@@ -58,13 +65,19 @@
   function parseByJsonify(text) {
     try {
       const start = text.indexOf('{');
-      const end = text.lastIndexOf('}');
+      // 取 `const JOURNAL_IF_DB = { ... };` 这一段的右括号，
+      // 文件末尾还有 `if (typeof window...) {` 块，直接 lastIndexOf 会跨过它
+      let end = text.indexOf('\n};', start);
+      if (end < 0) end = text.lastIndexOf('}');
+      else end += 1;   // 指向 '}' 本身
       if (start < 0 || end <= start) return {};
       let body = text.slice(start, end + 1);
       body = body
         .replace(/([{,]\s*)if(\s*:)/g, '$1"if"$2')
         .replace(/([{,]\s*)q(\s*:)/g, '$1"q"$2')
-        .replace(/([{,]\s*)name(\s*:)/g, '$1"name"$2');
+        .replace(/([{,]\s*)name(\s*:)/g, '$1"name"$2')
+        .replace(/([{,]\s*)cn(\s*:)/g, '$1"cn"$2')
+        .replace(/([{,]\s*)top(\s*:)/g, '$1"top"$2');
       const obj = JSON.parse(body);
       const out = {};
       Object.keys(obj).forEach(function (k) {
@@ -74,6 +87,8 @@
           if: v.if,
           q: v.q || '',
           name: v.name || '',
+          cn: typeof v.cn === 'number' ? v.cn : null,
+          top: !!v.top,
         };
       });
       return out;

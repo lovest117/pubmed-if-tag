@@ -9,7 +9,8 @@ dist/
 .wrangler/
 .DS_Store
 Thumbs.db
-# 数据源原始文件（约 12 MB，scripts/build-journal-db.py 开头有重新下载的命令）
+# 数据源原始文件（约 25 MB，scripts/build-journal-db.py 开头有重新获取的说明）
+scripts/jcr.db
 scripts/jcr_2023_wos.csv
 scripts/J_Medline.txt
 # 期刊库构建时的自动备份

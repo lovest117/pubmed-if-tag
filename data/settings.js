@@ -11,12 +11,13 @@
     showSearch: true,     // 搜索结果页显示标签
     showDetail: true,     // 文章详情页显示标签
     showQuartile: true,   // 标签里带 Q1/Q2 分区
+    showCAS: true,        // 标签里带中科院大类分区（1-4 区）
     compact: false,       // 紧凑样式（更小、去掉底色）
     hintMissing: true,    // 详情页查不到 IF 时给出反馈入口
     thresholds: [20, 10, 5, 2], // 颜色分级阈值：红/橙/黄/绿
   };
 
-  const BOOL_KEYS = ['showSearch', 'showDetail', 'showQuartile', 'compact', 'hintMissing'];
+  const BOOL_KEYS = ['showSearch', 'showDetail', 'showQuartile', 'showCAS', 'compact', 'hintMissing'];
 
   function normalizeThresholds(t) {
     const src = Array.isArray(t) ? t : DEFAULTS.thresholds;

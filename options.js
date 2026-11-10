@@ -5,7 +5,7 @@
   'use strict';
 
   var S = window.PIFSettings;
-  var BOOL_IDS = ['showSearch', 'showDetail', 'showQuartile', 'compact', 'hintMissing'];
+  var BOOL_IDS = ['showSearch', 'showDetail', 'showQuartile', 'showCAS', 'compact', 'hintMissing'];
   var msgEl = document.getElementById('msg');
 
   function $(id) {

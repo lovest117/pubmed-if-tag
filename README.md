@@ -16,16 +16,16 @@
 - **二级设置页**：可关掉搜索页或详情页的标注、隐藏分区标签、改 IF 颜色阈值、切紧凑样式
 - **手动检查新版本**：只有你点弹窗底部的版本号才会去查一次，不后台轮询、不弹窗打扰
 - **颜色分级**：IF ≥ 20 红 / ≥ 10 橙 / ≥ 5 黄 / ≥ 2 绿 / 其他灰（阈值可在设置页改）
-- **内置 3374 本期刊**（JCR 2023）：医学与生命科学类 Q1–Q2 全收录，含神经科学、临床各科、肿瘤、免疫、药理、公共卫生等方向，另含 Nature、Science、Cell 等综合刊
+- **内置 13575 本期刊**（JCR 2025 + 中科院分区表 2025）：覆盖 PubMed / PMC 会出现的全部 SCIE 期刊，含神经科学、临床各科、肿瘤、免疫、药理、公共卫生等方向，另含 Nature、Science、Cell 等综合刊；标签同时给出 JCR 分区与中科院大类分区
 - 兼容 PubMed React SPA（翻页、切换搜索不刷新页面也自动生效）
 
 ## 效果示意
 
 ```
-Lancet. 2024                             IF 98.4 (Q1)
-Nat Commun. 2025 Nov 18;16(1):10094.     IF 14.7 (Q1)
-EMBO J. 2024 Sep;43(17):4121-4138.       IF 9.4  (Q1)
-Front Neurol. 2024;15:1234567.           IF 2.7  (Q2)
+Lancet. 2024                             IF 109.0 (Q1) · 中科院1区
+Nat Commun. 2025 Nov 18;16(1):10094.     IF 18.1  (Q1) · 中科院1区
+EMBO J. 2024 Sep;43(17):4121-4138.       IF 8.4   (Q1) · 中科院1区
+Front Neurol. 2024;15:1234567.           IF 2.7   (Q2) · 中科院3区
 ```
 
 ## 安装
@@ -119,7 +119,7 @@ Pubmed-IF-Tag/
 ├── options.html           # 二级设置页
 ├── options.js             # 设置页逻辑（阈值校验与保存）
 ├── data/
-│   ├── journal-if.js      # 内置期刊 IF 数据库（3374 条）
+│   ├── journal-if.js      # 内置期刊数据库（13575 条，含 IF / JCR 分区 / 中科院分区）
 │   ├── library.js         # 库解析 / 合并 / 远程更新
 │   └── settings.js        # 共享配置模块（默认值、归一化、变更订阅）
 ├── icons/                 # 图标 16 / 48 / 128
@@ -128,7 +128,7 @@ Pubmed-IF-Tag/
 │   └── download/          # 主页下载的最新 zip
 ├── scripts/
 │   ├── release.ps1            # 一键打包 + 发版 + 部署
-│   ├── build-journal-db.py    # 用 JCR 2023 全表 + NLM 缩写表重建期刊库
+│   ├── build-journal-db.py    # 用 JCR 2025 + 中科院分区表 2025 + NLM 缩写表重建期刊库
 │   ├── build-jcr-index.py     # 生成反馈入库用的 jcr_index.csv（4913 条）
 │   ├── jcr_index.csv          # 刊名 → IF / 分区 查询表（脚本产物，随仓库提交）
 │   └── add_journal_from_issue.py  # 从 Issue 取刊名 + 四级匹配 + 四态返回
@@ -142,23 +142,24 @@ Pubmed-IF-Tag/
 
 ## 期刊数据来源
 
-内置库不是手工整理的，而是从两份权威数据生成，避免分批补录引入重复键：
+内置库不是手工整理的，而是从三份权威数据生成，避免分批补录引入重复键：
 
 | 数据 | 来源 | 用途 |
 |---|---|---|
-| 2023 JCR 全表（21,848 本） | [vallenderlab/journalanalysis](https://github.com/vallenderlab/journalanalysis) 的 `data/jcr_2023_wos.csv` | 影响因子、JIF 分区、学科类别 |
+| JCR 2025（22,643 本，2026-06-17 发布） | [ShowJCR](https://github.com/hitfyd/ShowJCR) 发行包里的 `jcr.db`，表 `JCR2025` | 影响因子、JCR 分区（多学科取最好分区） |
+| 中科院分区表 2025（21,772 本） | 同库表 `FQBJCR2025`（源自 advanced.fenqubiao.com） | 大类分区、Top 标记 |
 | NLM 期刊表（4.7 万条） | [NCBI FTP: J_Medline.txt](https://ftp.ncbi.nlm.nih.gov/pubmed/J_Medline.txt) | PubMed 缩写（MedAbbr）与 ISSN，把 JCR 全称映射成引用行里的缩写 |
 
-重建流程（原始文件约 12 MB，已 gitignore，下载命令写在脚本开头）：
+重建流程（原始文件约 20 MB，已 gitignore，下载方式写在脚本开头）：
 
 ```powershell
-python scripts/build-journal-db.py     # 重建 data/journal-if.js
+python scripts/build-journal-db.py --db scripts/jcr.db --medline scripts/J_Medline.txt
 python scripts/build-jcr-index.py      # 生成 scripts/jcr_index.csv
 ```
 
-口径：医学与生命科学类学科中 JCR 分区为 Q1/Q2 的期刊，且必须能在 NLM 表里查到 PubMed 缩写；同一本刊属多个学科时取最好分区。
+口径：JCR 2025 全表中能在 NLM 表按 ISSN 查到 PubMed 缩写的期刊（即 PubMed 页面实际会出现的刊），共 13575 条；缩写键直接取 MedAbbr，与引用行完全一致。旧版库里的短别名（`ajcn`、`ccr` 这类）用刊名匹配继承，指向同一本刊。
 
-`jcr_index.csv` 覆盖范围更宽（含 Q3/Q4，便于回复「不在收录范围」），并把库内早期手工积累的条目一并纳入，共 4913 条。JCR 数据版权归 Clarivate，此处仅作个人查阅参考。
+`jcr_index.csv` 覆盖范围更宽（含 Q3/Q4，便于回复「不在收录范围」）以及库外期刊，用于 Issue 自动入库。JCR 与分区表版权分别归 Clarivate 和中科院文献情报中心，此处仅作个人查阅参考。
 
 ## 发版
 

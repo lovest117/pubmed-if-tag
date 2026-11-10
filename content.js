@@ -153,7 +153,10 @@
     const compact = !!cfg().compact;
     const qLabel = (cfg().showQuartile && ifInfo.q)
       ? ` <span style="opacity:0.7">(${ifInfo.q})</span>` : '';
-    badge.innerHTML = `IF <strong>${ifInfo.if}</strong>${qLabel}`;
+    // 中科院大类分区（2025 版），可在设置里关闭
+    const casLabel = (cfg().showCAS && ifInfo.cn)
+      ? ` <span style="opacity:0.7">· 中科院${ifInfo.cn}区</span>` : '';
+    badge.innerHTML = `IF <strong>${ifInfo.if}</strong>${qLabel}${casLabel}`;
     badge.style.cssText = `
       display: inline-block;
       margin-left: ${compact ? 4 : 6}px;
@@ -169,13 +172,16 @@
       white-space: nowrap;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
-    badge.title = `${ifInfo.name} | JCR ${ifInfo.q}区 | IF ${ifInfo.if} | 点击复制`;
+    const casTitle = ifInfo.cn ? ` | 中科院${ifInfo.cn}区${ifInfo.top ? ' Top' : ''}` : '';
+    badge.title = `${ifInfo.name} | JCR ${ifInfo.q || 'N/A'}区 | IF ${ifInfo.if}${casTitle} | 点击复制`;
 
-    // 点击徽章复制「期刊全称 IF xx.x (Qx)」
+    // 点击徽章复制「期刊全称 IF xx.x (Qx) 中科院x区」
     badge.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      const plain = `${ifInfo.name} IF ${ifInfo.if}` + (ifInfo.q ? ` (${ifInfo.q})` : '');
+      let plain = `${ifInfo.name} IF ${ifInfo.if}`;
+      if (ifInfo.q) plain += ` (${ifInfo.q})`;
+      if (ifInfo.cn) plain += ` 中科院${ifInfo.cn}区${ifInfo.top ? ' Top' : ''}`;
       const saved = badge.innerHTML;
       const flash = function (txt) {
         badge.style.opacity = '0.65';
