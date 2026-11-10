@@ -127,6 +127,9 @@ if (Test-Path -LiteralPath $siteIdx) {
   $htmlOld = [IO.File]::ReadAllText($siteIdx, [Text.Encoding]::UTF8)
   $htmlNew = $htmlOld -replace '(data-ver-static>v)\d+(?:\.\d+)*', ('${1}' + $ver)
   $htmlNew = $htmlNew -replace '(Pubmed-IF-Tag-v)\d+(?:\.\d+)*\.zip', ('${1}' + $ver + '.zip')
+  # 页面里的兜底版本号与 bug 版本占位符也一起走，否则离线首屏会显示上一版
+  $htmlNew = $htmlNew -replace "(var FALLBACK_VER = 'v)\d+(?:\.\d+)*", ('${1}' + $ver)
+  $htmlNew = $htmlNew -replace '(id="bugVer" placeholder="v)\d+(?:\.\d+)*', ('${1}' + $ver)
   if ($htmlNew -ne $htmlOld) {
     [IO.File]::WriteAllText($siteIdx, $htmlNew, $utf8NoBom)
     Write-Output ("  index.html 静态版本号已同步为 " + $tag)
