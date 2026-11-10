@@ -208,7 +208,10 @@
 
   function currentPmid() {
     const m = String(location.pathname).match(/\/(\d+)\/?$/);
-    return m ? m[1] : '';
+    if (m) return m[1];
+    // PMC 全文页的路径是 PMC ID（PMC4392080），真正的 PMID 在 meta 里
+    const meta = document.querySelector('meta[name="citation_pmid"]');
+    return meta ? (meta.getAttribute('content') || '').trim() : '';
   }
 
   /**
@@ -453,10 +456,75 @@
   }
 
   /**
+   * 处理 PMC 全文页
+   * DOM：<div class="front-matter"><hgroup><h1>标题</h1></hgroup>
+   *        <div class="ameta p font-secondary font-xs"><div>
+   *          <div class="display-inline-block"><button>Cell Death Differ</button></div>
+   *          . 2014 Nov 14;22(5):838–851. doi: <a …>
+   * PMC 把刊名缩写放在 <button> 里，按钮文本正好是库里的键形式，直接查表即可
+   */
+  function processPmcPage() {
+    if (!cfg().showDetail) return;
+    if (document.querySelector('[data-pifh-badge]')) return;
+
+    // 注意：刊名 <button> 不在 .front-matter 里，它在标题下方那条独立引文行
+    //        （"Cell Death Differ. 2014 Nov 14;22(5):838–851."）。
+    //        所以全页扫按钮，第一个"文本能查到库 + 所在块含年份"的就是主文章引文行。
+    const buttons = document.querySelectorAll('button');
+    for (const btn of buttons) {
+      const label = (btn.textContent || '').trim();
+      if (!label || label.length > 60 || !looksLikeJournal(label)) continue;
+      const ifInfo = lookupIF(label);
+      if (!ifInfo) continue;
+
+      // 向上最多三层找一个带年份的容器，确认这是引文行而不是工具栏按钮
+      let row = btn.parentElement;
+      for (let i = 0; i < 3 && row; i++) {
+        if (/(19|20)\d{2}/.test(row.textContent || '')) break;
+        row = row.parentElement;
+      }
+      if (!row || !/(19|20)\d{2}/.test(row.textContent || '')) continue;
+
+      const { hl, color } = getIFColors(ifInfo.if);
+      btn.style.backgroundColor = hl;
+      btn.style.color = color;
+      btn.style.fontWeight = '600';
+      btn.style.borderRadius = '3px';
+      btn.style.padding = '0 3px';
+
+      const wrap = btn.closest('.display-inline-block') || btn;
+      const badge = createIFBadge(ifInfo);
+      badge.style.marginLeft = '4px';
+      wrap.parentNode.insertBefore(badge, wrap.nextSibling);
+      return;
+    }
+
+    // 兜底：刊名只存在于 meta 时用全称找一次；命中不了就不标，避免错标
+    const meta = document.querySelector('meta[name="citation_journal_title"]');
+    const fullName = meta ? (meta.getAttribute('content') || '').trim() : '';
+    if (!fullName) return;
+    const ifInfo = lookupIF(fullName);
+    if (!ifInfo) return;
+
+    const h1 = document.querySelector('h1');
+    if (!h1 || !h1.parentNode) return;
+    const line = document.createElement('div');
+    line.style.cssText = 'margin:6px 0 2px;font-size:12px;color:#64748b;';
+    line.textContent = ifInfo.name + ' ';
+    line.appendChild(createIFBadge(ifInfo));
+    h1.parentNode.insertBefore(line, h1.nextSibling);
+  }
+
+  /**
    * 判断当前页面类型并处理
    */
   function processPage() {
     const url = window.location.href;
+    // PMC 全文页要优先判断：它的路径也以数字结尾，落到 PubMed 详情页逻辑会扫全页乱标
+    if (/pmc\.ncbi\.nlm\.nih\.gov/.test(url) || /ncbi\.nlm\.nih\.gov\/pmc\//.test(url)) {
+      processPmcPage();
+      return;
+    }
     const isSearch = url.includes('/?') || /pubmed\.ncbi\.nlm\.nih\.gov\/$/.test(url);
     const isDetail = /\/\d+\/$/.test(url);
     if (isSearch) {
