@@ -106,6 +106,18 @@ def main():
             cur[k.strip()] = v
     flush(cur)
 
+    # data/journal-if.js 是唯一事实来源：q / cn / top 一律以它为准，避免两套逻辑漂移
+    entry_re = re.compile(r'^\s*"([^"]+)"\s*:\s*\{\s*if\s*:\s*([0-9.]+)\s*,\s*q\s*:\s*"([^"]*)"\s*,\s*name\s*:\s*"([^"]*)"\s*,\s*cn\s*:\s*(null|[1-4])\s*,\s*top\s*:\s*([01])\s*\}\s*,?\s*$')
+    db_path = os.path.join(ROOT, 'data', 'journal-if.js')
+    lib = {}
+    if os.path.exists(db_path):
+        for line in io.open(db_path, encoding='utf-8'):
+            m = entry_re.match(line)
+            if m:
+                lib[m.group(1)] = (m.group(3),
+                                   '' if m.group(5) == 'null' else int(m.group(5)),
+                                   int(m.group(6)))
+
     con = sqlite3.connect(args.db)
     con.row_factory = sqlite3.Row
 
@@ -139,15 +151,14 @@ def main():
         best = sorted(qs)[0]
         f = fqb.get(issn) or fqb.get(eissn) or ('', 0)
         # 同一缩写命中多本刊时保留分区更好的
-        if key in seen and Q_ORDER[seen[key][3]] <= Q_ORDER[best]:
+        if key in seen and Q_ORDER.get(seen[key][3], 9) <= Q_ORDER[best]:
             continue
-        seen[key] = (rec[0], titlecase(r['Journal']) or rec[1], jif, best, f[0], f[1])
+        q_v, cn_v, top_v = lib.get(key, (best, f[0], f[1]))
+        seen[key] = (rec[0], titlecase(r['Journal']) or rec[1], jif, q_v, cn_v, top_v)
     con.close()
 
     # 现有库里的兼容别名也补进来：反馈命中时应回「库里已有」
-    db_path = os.path.join(ROOT, 'data', 'journal-if.js')
     if os.path.exists(db_path):
-        entry_re = re.compile(r'^\s*"([^"]+)"\s*:\s*\{\s*if\s*:\s*([0-9.]+)\s*,\s*q\s*:\s*"([^"]*)"\s*,\s*name\s*:\s*"([^"]*)"\s*,\s*cn\s*:\s*(null|[1-4])\s*,\s*top\s*:\s*([01])\s*\}\s*,?\s*$')
         added = 0
         for line in io.open(db_path, encoding='utf-8'):
             m = entry_re.match(line)

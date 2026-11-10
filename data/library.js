@@ -9,6 +9,32 @@
   // 本地存储键名
   const STORAGE_KEY = 'pifLibrary';
 
+  // 网络请求超时：拉库、检查版本都不能无限挂着
+  const FETCH_TIMEOUT = 9000;
+
+  /** 当前扩展版本，用作快照「基于哪一版内置库」的标记 */
+  function getManifestVersion() {
+    try {
+      return chrome.runtime.getManifest().version || '';
+    } catch (err) {
+      return '';
+    }
+  }
+
+  /** 带超时的 fetch，超时抛 AbortError，由调用方按回退链处理 */
+  async function fetchWithTimeout(url, options) {
+    const hasAbort = typeof AbortController === 'function';
+    const ctrl = hasAbort ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(function () { ctrl.abort(); }, FETCH_TIMEOUT) : null;
+    try {
+      const opts = Object.assign({ cache: 'no-store' }, options || {});
+      if (ctrl) opts.signal = ctrl.signal;
+      return await fetch(url, opts);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
   // 远程数据源，按顺序尝试，任一成功即返回
   // 之所以列三个，是因为国内网络对 GitHub raw 域名不稳定
   const REMOTE_SOURCES = [
@@ -125,40 +151,79 @@
   }
 
   /**
-   * 取当前生效的库：内置 + 已更新部分（已更新优先）
+   * 取当前生效的库。
+   * 刻意不合并成一份全量对象：内置库保持原引用直接复用，更新过的部分单独放一张小表，
+   * 查询时先查差异、未命中再查内置。否则只要用户点过「更新」，
+   * 每次打开页面都要 Object.assign 复制 1.3 万个键（约 15–20 MB、10–20 ms）。
    */
   async function getActiveLibrary() {
     const builtin = (typeof window !== 'undefined' && window.JOURNAL_IF_DB) || {};
     const builtinCount = Object.keys(builtin).length;
     const stored = await getStoredLibrary();
+    const overrides = {};
+    let extra = 0;
+    let staleDropped = 0;
+
     if (stored && stored.entries) {
-      const merged = Object.assign({}, builtin, stored.entries);
+      const curVer = getManifestVersion();
+      // 只有快照记录的内置库版本与当前一致时，才允许它覆盖内置值；
+      // 版本变了（扩展升级过）或老数据没记版本，就只补「内置库里没有的刊」，
+      // 否则升级带来的新 IF / 新分区会被旧快照盖回去。
+      const sameVersion = !!stored.builtinVersion && stored.builtinVersion === curVer;
+      Object.keys(stored.entries).forEach(function (k) {
+        if (!builtin[k]) {
+          overrides[k] = stored.entries[k];
+          extra++;
+        } else if (sameVersion) {
+          overrides[k] = stored.entries[k];
+        } else {
+          staleDropped++;
+        }
+      });
       return {
-        entries: merged,
+        builtin: builtin,
+        builtinCount: builtinCount,
+        overrides: overrides,
+        remoteCount: Object.keys(overrides).length,
+        totalCount: builtinCount + extra,
+        staleDropped: staleDropped,
         source: stored.source || 'remote',
         updatedAt: stored.updatedAt || 0,
-        builtinCount: builtinCount,
-        remoteCount: Object.keys(stored.entries).length,
       };
     }
+
     return {
-      entries: builtin,
+      builtin: builtin,
+      builtinCount: builtinCount,
+      overrides: overrides,
+      remoteCount: 0,
+      totalCount: builtinCount,
+      staleDropped: 0,
       source: 'builtin',
       updatedAt: 0,
-      builtinCount: builtinCount,
-      remoteCount: 0,
     };
   }
 
   /**
-   * 保存合并后的库
+   * 保存更新：只写「相对内置库有差异的键」，不再写全量快照
    */
   async function saveLibrary(entries, source) {
+    const builtin = (typeof window !== 'undefined' && window.JOURNAL_IF_DB) || {};
+    const diff = {};
+    Object.keys(entries || {}).forEach(function (k) {
+      const a = entries[k];
+      const b = builtin[k];
+      if (!b || b.if !== a.if || b.q !== a.q || b.name !== a.name ||
+          (b.cn || null) !== (a.cn || null) || !!b.top !== !!a.top) {
+        diff[k] = a;
+      }
+    });
     const payload = {
-      entries: entries,
+      entries: diff,
       source: source,
       updatedAt: Date.now(),
-      count: Object.keys(entries).length,
+      count: Object.keys(diff).length,
+      builtinVersion: getManifestVersion(),
     };
     await chrome.storage.local.set({ [STORAGE_KEY]: payload });
     return payload;
@@ -183,7 +248,7 @@
   }
 
   async function fetchSource(src) {
-    const resp = await fetch(src.url, { cache: 'no-store' });
+    const resp = await fetchWithTimeout(src.url);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     if (src.type === 'github-api') {
       const json = await resp.json();
@@ -223,6 +288,8 @@
   window.PIFLibrary = {
     STORAGE_KEY: STORAGE_KEY,
     REMOTE_SOURCES: REMOTE_SOURCES,
+    FETCH_TIMEOUT: FETCH_TIMEOUT,
+    fetchWithTimeout: fetchWithTimeout,
     parseJournalJs: parseJournalJs,
     mergeLibraries: mergeLibraries,
     getStoredLibrary: getStoredLibrary,

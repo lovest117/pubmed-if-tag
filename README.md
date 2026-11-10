@@ -9,13 +9,13 @@
 
 - **搜索结果页**：引用行的「期刊缩写 + 年份」按 IF 等级高亮，行末追加 `IF xx.x (Qx)` 徽章
 - **文章详情页**：引用行末尾追加同样的徽章，不用来回切页面
-- **点击徽章复制**：点一下就把「期刊全称 IF 14.7 (Q1)」复制到剪贴板，写综述时直接粘
+- **点击徽章复制**：点一下就把「期刊全称 IF 18.1 (Q1)」复制到剪贴板，写综述时直接粘
 - **更新期刊数据**：弹窗点一下从仓库拉取最新库并合并到本地，不用重装扩展；三个源自动回退
 - **恢复内置库**：一键丢弃本地更新快照，回到安装包自带的数据
 - **反馈缺失期刊（零输入）**：详情页遇到库里没有的期刊，会冒出一个虚线小问号；点一下就把刊名带进反馈页，IF 与分区由系统查表补，用户不用手打
 - **二级设置页**：可关掉搜索页或详情页的标注、隐藏分区标签、改 IF 颜色阈值、切紧凑样式
 - **手动检查新版本**：只有你点弹窗底部的版本号才会去查一次，不后台轮询、不弹窗打扰
-- **颜色分级**：IF ≥ 20 红 / ≥ 10 橙 / ≥ 5 黄 / ≥ 2 绿 / 其他灰（阈值可在设置页改）
+- **颜色分级**：IF ≥ 20 深墨绿 / ≥ 10 中绿 / ≥ 5 柔麦黄 / ≥ 3 暖陶橙 / 低于 3 归「其他」暗紫褐（阈值可在设置页改，最低档不低于 3 分）
 - **内置 13575 本期刊**（JCR 2025 + 中科院分区表 2025）：覆盖 PubMed / PMC 会出现的全部 SCIE 期刊，含神经科学、临床各科、肿瘤、免疫、药理、公共卫生等方向，另含 Nature、Science、Cell 等综合刊；标签同时给出 JCR 分区与中科院大类分区
 - 兼容 PubMed React SPA（翻页、切换搜索不刷新页面也自动生效）
 
@@ -25,7 +25,8 @@
 Lancet. 2024                             IF 109.0 (Q1) · 中科院1区
 Nat Commun. 2025 Nov 18;16(1):10094.     IF 18.1  (Q1) · 中科院1区
 EMBO J. 2024 Sep;43(17):4121-4138.       IF 8.4   (Q1) · 中科院1区
-Front Neurol. 2024;15:1234567.           IF 2.7   (Q2) · 中科院3区
+J Affect Disord. 2023;325:1-10.          IF 5.7   (Q1) · 中科院2区
+PLoS One. 2024;19(3):e0291234.           IF 2.8   (Q2) · 中科院3区
 ```
 
 ## 安装
@@ -93,14 +94,14 @@ Front Neurol. 2024;15:1234567.           IF 2.7   (Q2) · 中科院3区
 ## 添加新期刊
 
 ```js
-"期刊缩写小写": { if: 影响因子数值, q: "Q1", name: "期刊全称" },
+"期刊缩写小写": { if: 影响因子数值, q: "Q1", name: "期刊全称", cn: 中科院大类, top: 0|1 },
 ```
 
 示例：
 
 ```js
-"nat commun": { if: 14.7, q: "Q1", name: "Nature Communications" },
-"neuron":     { if: 12.1, q: "Q1", name: "Neuron" },
+"nat commun": { if: 18.1, q: "Q1", name: "Nature Communications", cn: 1, top: 1 },
+"neuron":     { if: 16.9, q: "Q1", name: "Neuron", cn: 1, top: 1 },
 ```
 
 改完在扩展管理页点刷新即可生效。用户提交的手工条目回插件点「更新期刊数据」也能拿到。
@@ -123,13 +124,17 @@ Pubmed-IF-Tag/
 │   ├── library.js         # 库解析 / 合并 / 远程更新
 │   └── settings.js        # 共享配置模块（默认值、归一化、变更订阅）
 ├── icons/                 # 图标 16 / 48 / 128
-├── site/                  # 主页（Cloudflare Pages）
+├── site/                  # 站点（Cloudflare Pages）
 │   ├── index.html         # 简介、功能、安装、三 tab 反馈、权限隐私
+│   ├── search.html        # 在线查期刊分区（输入刊名 / 缩写 / ISSN）
+│   ├── data/              # 查询页用的 journals.json 与 journals.csv（脚本产物）
 │   └── download/          # 主页下载的最新 zip
 ├── scripts/
 │   ├── release.ps1            # 一键打包 + 发版 + 部署
 │   ├── build-journal-db.py    # 用 JCR 2025 + 中科院分区表 2025 + NLM 缩写表重建期刊库
-│   ├── build-jcr-index.py     # 生成反馈入库用的 jcr_index.csv（4913 条）
+│   ├── verify-journal-db.py   # 校验内置库与数据源逐条一致（jcr.db 或两份 Excel 均可）
+│   ├── build-site-data.py     # 导出站点查询页数据 site/data/journals.json / .csv
+│   ├── build-jcr-index.py     # 生成反馈入库用的 jcr_index.csv
 │   ├── jcr_index.csv          # 刊名 → IF / 分区 查询表（脚本产物，随仓库提交）
 │   └── add_journal_from_issue.py  # 从 Issue 取刊名 + 四级匹配 + 四态返回
 ├── .github/
@@ -154,12 +159,35 @@ Pubmed-IF-Tag/
 
 ```powershell
 python scripts/build-journal-db.py --db scripts/jcr.db --medline scripts/J_Medline.txt
-python scripts/build-jcr-index.py      # 生成 scripts/jcr_index.csv
+python scripts/build-jcr-index.py --db scripts/jcr.db --medline scripts/J_Medline.txt
 ```
 
-口径：JCR 2025 全表中能在 NLM 表按 ISSN 查到 PubMed 缩写的期刊（即 PubMed 页面实际会出现的刊），共 13575 条；缩写键直接取 MedAbbr，与引用行完全一致。旧版库里的短别名（`ajcn`、`ccr` 这类）用刊名匹配继承，指向同一本刊。
+改完库或换新年度数据后，先跑校验确认库与数据源逐条一致：
+
+```powershell
+# 用 jcr.db 校验（要求零差异）
+python scripts/verify-journal-db.py --db scripts/jcr.db --medline scripts/J_Medline.txt
+
+# 也可以直接用两份 Excel 校验，不需要 jcr.db
+python scripts/verify-journal-db.py `
+  --jcr-xlsx "2026年度JCR期刊名单（完整版）.xlsx" `
+  --cas-xlsx "2025中科院期刊分区表excel完整版.xlsx" `
+  --medline scripts/J_Medline.txt
+```
+
+校验会用同一套规则从数据源重建一遍，再与 `data/journal-if.js` 逐条比对 IF / JCR 分区 / 中科院分区 / Top，不一致即报错退出。中科院分区按 ISSN 匹配，个别刊在分区表里 ISSN 字段缺失时按归一化刊名兜底（仅刊名唯一对应才采用）。
+
+口径：JCR 2025 全表中能在 NLM 表按 ISSN 查到 PubMed 缩写的期刊（即 PubMed 页面实际会出现的刊），共 13575 条；缩写键直接取 MedAbbr，与引用行完全一致。旧版库里的短别名（`ajcn`、`ccr` 这类）用刊名匹配继承，指向同一本刊。其中 12988 条带中科院大类分区，其余 587 条是分区表本身未收录的新刊 / 人文社科刊（如 Nature Water、ACS Applied Engineering Materials），不是漏配。
 
 `jcr_index.csv` 覆盖范围更宽（含 Q3/Q4，便于回复「不在收录范围」）以及库外期刊，用于 Issue 自动入库。JCR 与分区表版权分别归 Clarivate 和中科院文献情报中心，此处仅作个人查阅参考。
+
+主页的 [在线查期刊分区](https://pubmed-if-tag.pages.dev/search.html) 读的就是同一份库，数据由脚本导出（改库后要重跑一次，否则页面还是旧值）：
+
+```powershell
+python scripts/build-site-data.py --db scripts/jcr.db --medline scripts/J_Medline.txt
+```
+
+产出的 `site/data/journals.json` 是前端查询用的压缩数组（约 1.6 MB，Cloudflare 会自动 gzip 到 300 KB 左右），`journals.csv` 供直接下载。字段顺序：缩写键、PubMed 缩写、全称、ISSN、IF、JCR 分区、中科院大类、Top、学科类别。
 
 ## 发版
 

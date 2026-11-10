@@ -131,7 +131,7 @@ def main():
     con.row_factory = sqlite3.Row
 
     # ---------- 中科院分区表 2025 ----------
-    fqb = {}
+    fqb, fqb_by_name = {}, {}
     for r in con.execute('SELECT * FROM FQBJCR2025'):
         ids = [norm_issn(x) for x in re.split(r'/', str(r['ISSN/EISSN'] or ''))]
         m = re.match(r'([1-4])', str(r['大类分区'] or '').strip())
@@ -139,13 +139,15 @@ def main():
             'cn': int(m.group(1)) if m else None,
             'top': 1 if str(r['Top'] or '').strip() == '是' else 0,
         }
+        fqb_by_name.setdefault(normalize_name(r['Journal']), []).append(rec)
         for i in ids:
             if i:
                 fqb.setdefault(i, rec)
-    print('中科院分区表 2025: %d 个 ISSN' % len(fqb))
+    print('中科院分区表 2025: %d 个 ISSN · %d 个刊名' % (len(fqb), len(fqb_by_name)))
 
     # ---------- JCR 2025 ----------
     new, conflicts = {}, []
+    name_fallback = 0
     for r in con.execute('SELECT * FROM JCR2025'):
         issn, eissn = norm_issn(r['ISSN']), norm_issn(r['EISSN'])
         rec = nlm.get(issn) or nlm.get(eissn)
@@ -163,13 +165,20 @@ def main():
         qs = [x for x in qs if re.fullmatch(r'Q[1-4]', x)]
         q = sorted(qs)[0] if qs else ''
 
-        f = fqb.get(issn) or fqb.get(eissn) or {}
+        f = fqb.get(issn) or fqb.get(eissn)
+        if not f:
+            # 分区表里个别刊的 ISSN 字段缺失或与 JCR 不一致，按刊名兜底；
+            # 仅当归一化刊名唯一对应一本刊时才采用，避免同名不同刊错配
+            hits = fqb_by_name.get(normalize_name(r['Journal']), [])
+            if len(hits) == 1:
+                f = hits[0]
+                name_fallback += 1
         item = {
             'if': jif,
             'q': q,
             'name': titlecase(r['Journal']) or rec[1],
-            'cn': f.get('cn'),
-            'top': f.get('top', 0),
+            'cn': (f or {}).get('cn'),
+            'top': (f or {}).get('top', 0),
         }
         if key in new:
             conflicts.append((key, new[key]['name'], item['name']))
@@ -253,6 +262,7 @@ def main():
     print('JCR 分区:', dict(qq))
     print('中科院大类:', dict(cc))
     print('中科院 Top:', sum(1 for v in new.values() if v['top']))
+    print('中科院按刊名兜底命中:', name_fallback)
 
 
 if __name__ == '__main__':

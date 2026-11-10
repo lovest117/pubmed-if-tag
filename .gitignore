@@ -16,3 +16,5 @@ scripts/J_Medline.txt
 # 期刊库构建时的自动备份
 data/journal-if.js.bak
 data/journal-if.js.bak2
+# 临时核对用的第三方 Excel（约 8.5 MB，版权归原机构，不入库）
+/*.xlsx

@@ -49,7 +49,9 @@
 
   // 主数字显示当前生效条数；内置/远程的构成放 tooltip，不在界面上堆两个数字
   function showCounts(active) {
-    var n = Object.keys(active.entries || {}).length;
+    var n = active.totalCount != null
+      ? active.totalCount
+      : Object.keys(active.entries || {}).length;
     var bIn = active.builtinCount || 0;
     var remoteN = active.remoteCount || 0;
     countEl.textContent = n + ' 种';
@@ -104,9 +106,17 @@
   // 主路径读主页上的 version.json：无速率限制、国内可访问，每次发版由 release.ps1 同步更新。
   // 回退到 GitHub Release API —— 匿名调用有每小时 60 次的 IP 配额，撞上限会 403，
   // 所以只能当备用，不能当主路径。
+  // 统一走 PIFLibrary 的超时封装，网络卡住时不会一直转圈
+  function fetchT(url, opts) {
+    if (window.PIFLibrary && window.PIFLibrary.fetchWithTimeout) {
+      return window.PIFLibrary.fetchWithTimeout(url, opts);
+    }
+    return fetch(url, opts);
+  }
+
   async function fetchRemoteVersion() {
     try {
-      var r = await fetch(SITE + '/version.json', { cache: 'no-store' });
+      var r = await fetchT(SITE + '/version.json');
       if (r.ok) {
         var j = await r.json();
         if (j && j.version) {
@@ -117,8 +127,7 @@
       // 走到回退
     }
     try {
-      var resp = await fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
-        { cache: 'no-store' });
+      var resp = await fetchT('https://api.github.com/repos/' + REPO + '/releases/latest');
       if (resp.ok) {
         var json = await resp.json();
         var v = String((json && (json.tag_name || json.name)) || '')
@@ -186,15 +195,22 @@
 
     try {
       var latest = await window.PIFLibrary.fetchLatestLibrary();
-      var merged = window.PIFLibrary.mergeLibraries(builtin, latest.entries);
-      await window.PIFLibrary.saveLibrary(merged.entries, latest.source);
+      var added = 0;
+      Object.keys(latest.entries).forEach(function (k) {
+        if (!builtin[k]) added++;
+      });
+      // 只写入相对内置库有差异的键，不再存全量快照
+      var saved = await window.PIFLibrary.saveLibrary(latest.entries, latest.source);
 
       var active = await window.PIFLibrary.getActiveLibrary();
       showCounts(active);
 
-      var total = Object.keys(merged.entries).length;
-      if (merged.added > 0) {
-        setStatus('更新成功：新增 ' + merged.added + ' 种，当前共 ' + total +
+      var total = active.totalCount;
+      if (added > 0) {
+        setStatus('更新成功：新增 ' + added + ' 种，当前共 ' + total +
+          ' 种。请刷新 PubMed 页面生效。', 'ok');
+      } else if (saved && saved.count > 0) {
+        setStatus('已更新为最新数据（修正 ' + saved.count + ' 条），当前共 ' + total +
           ' 种。请刷新 PubMed 页面生效。', 'ok');
       } else {
         setStatus('已是最新数据，共 ' + total + ' 种，无需新增。', 'ok');

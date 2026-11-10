@@ -9,11 +9,11 @@
   :root{
     --ink:#0f2b46; --sub:#5b6b7c; --line:#e3e9f0; --bg:#f7f9fc; --card:#ffffff;
     --brand:#1d4ed8; --brand-soft:#eff4ff;
-    --if20:#b91c1c; --if20bg:#fee2e2;
-    --if10:#c2410c; --if10bg:#ffedd5;
-    --if5:#b45309;  --if5bg:#fef3c7;
-    --if2:#15803d;  --if2bg:#dcfce7;
-    --if0:#64748b;  --if0bg:#f1f5f9;
+    --if20:#00663F; --if20bg:#E0EDE8; --if20ink:#00663F; --if20fg:#FFFFFF;
+    --if10:#2E9968; --if10bg:#E6F3ED; --if10ink:#278258; --if10fg:#FFFFFF;
+    --if5:#F2CD76;  --if5bg:#FDF9EF;  --if5ink:#857141;  --if5fg:#241C14;
+    --if3:#DD8344;  --if3bg:#FBF0E9;  --if3ink:#9B5C30;  --if3fg:#241C14;
+    --if0:#704264;  --if0bg:#EEE8EC;  --if0ink:#704264;  --if0fg:#FFFFFF;
   }
   *{box-sizing:border-box}
   body{
@@ -46,11 +46,16 @@
   .demo-line{margin:10px 0;white-space:nowrap}
   .hl{padding:1px 4px;border-radius:3px;font-weight:700}
   .badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11.5px;font-weight:700;margin-left:6px;vertical-align:1px}
-  .lv20{color:var(--if20);background:var(--if20bg)}
-  .lv10{color:var(--if10);background:var(--if10bg)}
-  .lv5{color:var(--if5);background:var(--if5bg)}
-  .lv2{color:var(--if2);background:var(--if2bg)}
-  .lv0{color:var(--if0);background:var(--if0bg)}
+  .lv20{color:var(--if20ink);background:var(--if20bg)}
+  .lv10{color:var(--if10ink);background:var(--if10bg)}
+  .lv5{color:var(--if5ink);background:var(--if5bg)}
+  .lv3{color:var(--if3ink);background:var(--if3bg)}
+  .lv0{color:var(--if0ink);background:var(--if0bg)}
+  .badge.lv20{color:var(--if20fg);background:var(--if20)}
+  .badge.lv10{color:var(--if10fg);background:var(--if10)}
+  .badge.lv5{color:var(--if5fg);background:var(--if5)}
+  .badge.lv3{color:var(--if3fg);background:var(--if3)}
+  .badge.lv0{color:var(--if0fg);background:var(--if0)}
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--sub)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
@@ -104,12 +109,13 @@
       ScholarScope 的免费替代，内置 13575 本期刊（JCR 2025 影响因子与分区 + 中科院分区表 2025），数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
     </p>
     <div class="btns">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.2.0.zip">下载扩展（zip）</a>
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.2.1.zip">下载扩展（zip）</a>
+      <a class="btn btn-ghost" href="./search.html">在线查期刊分区</a>
       <a class="btn btn-ghost" href="#feedback">反馈无 IF 标签的期刊</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
     </div>
-    <p class="meta">版本 1.2.0 · 数据来源 Clarivate JCR 2025 + 中科院分区表 2025 · MIT 许可</p>
+    <p class="meta">版本 1.2.1 · 数据来源 Clarivate JCR 2025 + 中科院分区表 2025 · MIT 许可</p>
   </div>
 </header>
 
@@ -119,31 +125,35 @@
     <div class="demo">
       <div class="demo-line">
         <span class="hl lv20">Lancet. 2024</span>
-        <span class="badge lv20">IF 98.4 · Q1</span>
+        <span class="badge lv20">IF 109.0 (Q1) · 中科院1区</span>
       </div>
       <div class="demo-line">
         <span class="hl lv10">Nat Commun. 2025</span>
-        <span class="badge lv10">IF 14.7 · Q1</span>
+        <span class="badge lv10">IF 18.1 (Q1) · 中科院1区</span>
       </div>
       <div class="demo-line">
         <span class="hl lv5">EMBO J. 2024</span>
-        <span class="badge lv5">IF 9.4 · Q1</span>
+        <span class="badge lv5">IF 8.4 (Q1) · 中科院1区</span>
       </div>
       <div class="demo-line">
-        <span class="hl lv2">J Affect Disord. 2023</span>
-        <span class="badge lv2">IF 4.9 · Q1</span>
+        <span class="hl lv5">J Affect Disord. 2023</span>
+        <span class="badge lv5">IF 5.7 (Q1) · 中科院2区</span>
       </div>
       <div class="demo-line">
-        <span class="hl lv2">Front Neurol. 2023</span>
-        <span class="badge lv0">IF 2.7 · Q2</span>
+        <span class="hl lv3">Front Neurol. 2024</span>
+        <span class="badge lv3">IF 3.3 (Q2) · 中科院3区</span>
+      </div>
+      <div class="demo-line">
+        <span class="hl lv0">PLoS One. 2024</span>
+        <span class="badge lv0">IF 2.8 (Q2) · 中科院3区</span>
       </div>
     </div>
     <div class="legend">
-      <span><i class="dot" style="background:#b91c1c"></i>IF ≥ 20</span>
-      <span><i class="dot" style="background:#c2410c"></i>IF ≥ 10</span>
-      <span><i class="dot" style="background:#b45309"></i>IF ≥ 5</span>
-      <span><i class="dot" style="background:#15803d"></i>IF ≥ 2</span>
-      <span><i class="dot" style="background:#64748b"></i>其余</span>
+      <span><i class="dot" style="background:#00663F"></i>IF ≥ 20</span>
+      <span><i class="dot" style="background:#2E9968"></i>IF ≥ 10</span>
+      <span><i class="dot" style="background:#F2CD76"></i>IF ≥ 5</span>
+      <span><i class="dot" style="background:#DD8344"></i>IF ≥ 3</span>
+      <span><i class="dot" style="background:#704264"></i>低于 3（其他）</span>
     </div>
   </div>
 </section>
@@ -224,7 +234,7 @@
         </div>
         <div>
           <label for="bugVer">插件版本（可选）</label>
-          <input id="bugVer" placeholder="v1.2.0">
+          <input id="bugVer" placeholder="v1.2.1">
         </div>
       </div>
       <button class="btn btn-primary" id="sendBug">提交</button>
@@ -258,7 +268,7 @@
 <section id="update">
   <div class="wrap">
     <h2>版本与更新</h2>
-    <p class="lead">当前最新 <b>v1.2.0</b>。侧载安装的版本需要手动换包；等上架商店后，浏览器会自动推送新版本，这一步就不用做了。</p>
+    <p class="lead">当前最新 <b>v1.2.1</b>。侧载安装的版本需要手动换包；等上架商店后，浏览器会自动推送新版本，这一步就不用做了。</p>
     <div class="grid">
       <div class="card">
         <h3>换包只需要三步</h3>
@@ -276,12 +286,13 @@
       </div>
     </div>
     <div class="btns" style="margin-top:16px">
-      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.2.0.zip">下载 v1.2.0 安装包</a>
+      <a class="btn btn-primary" href="./download/Pubmed-IF-Tag-v1.2.1.zip">下载 v1.2.1 安装包</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">全部历史版本</a>
     </div>
 
     <h3 style="font-size:14px;font-weight:600;margin:26px 0 10px">更新了什么</h3>
     <table>
+      <tr><th>v1.2.1</th><td>新增<a href="./search.html">在线查期刊分区</a>：输入期刊全称、PubMed 缩写或 ISSN，即可查影响因子、JCR 分区、中科院大类分区与 Top，全表也能下载成 CSV/JSON。<br>标签配色改为 <b>3 分门槛</b>：IF 低于 3 分（不含）统一归入「其他」，不再按旧阈值着绿。<br>期刊库修正 3 本可按刊名对上、但分区表 ISSN 字段缺失的刊（Computer Law &amp; Security Review、Intelligent Systems in Accounting Finance &amp; Management、Mutation Research），现 12988 条带中科院分区；新增 <code>scripts/verify-journal-db.py</code>，可把内置库与 JCR 2025 / 分区表 2025 逐条比对（已核为零差异）。<br>性能：结果页与详情页的扫描改到浏览器空闲时段，并跳过插件自己插入的标签节点，不再「标注触发重扫」自己触发自己；期刊库查询改走前缀索引，查不到的刊不再逐条扫全表。<br>修复：点过「更新期刊数据」后再升级插件，旧快照会把新版内置库的 IF / 分区盖回旧值（现在旧快照只补内置库没有的刊）；网络卡住时拉取数据不再无限等待，9 秒超时后自动按备用源重试。</td></tr>
       <tr><th>v1.2.0</th><td>期刊库升级到 JCR 2025（2026-06-17 发布），并新增中科院分区表 2025：内置期刊从 3374 本扩到 13575 本，标签显示为「IF 13.6 (Q1) · 中科院1区」；设置页新增「显示中科院分区」开关，Top 期刊在悬停与复制文本里标出。<br>注意：库格式多了中科院字段，1.1.2 及更早版本点「更新期刊数据」会提示解析失败（本地数据不受影响，不会变少），下载本页安装包升级即可正常使用。</td></tr>
       <tr><th>v1.1.2</th><td>PMC 搜索结果页（/search/）也显示 IF 标签：逐条读取结果列表里 citation-part 的刊名并查表，命中就把「刊名. 年份」高亮、行尾追加 IF/分区徽章；翻页与排序后由页面监听自动重新标注。</td></tr>
       <tr><th>v1.1.1</th><td>修复 PMC 全文页不显示标签：注入范围补上 pmc.ncbi.nlm.nih.gov（含旧路径 www.ncbi.nlm.nih.gov/pmc）；内容脚本新增 PMC 分支——从标题下方引文行里的刊名按钮取缩写查表，命中后高亮刊名并在其后追加 IF/分区徽章；PMC 页上「反馈未收录」的链接改为读页面 meta 里的 PMID。</td></tr>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>期刊查询 · Pubmed IF Tag</title>
+<meta name="description" content="输入期刊名、PubMed 缩写或 ISSN，查询 13575 本期刊的影响因子、JCR 分区与中科院大类分区（JCR 2025 + 中科院分区表 2025）。">
+<style>
+  :root{
+    --ink:#0f2b46; --sub:#5b6b7c; --line:#e3e9f0; --bg:#f7f9fc; --card:#fff;
+    --brand:#1d4ed8; --brand-soft:#eff4ff;
+    --if20:#00663F; --if20bg:#E0EDE8; --if20ink:#00663F; --if20fg:#FFFFFF;
+    --if10:#2E9968; --if10bg:#E6F3ED; --if10ink:#278258; --if10fg:#FFFFFF;
+    --if5:#F2CD76;  --if5bg:#FDF9EF;  --if5ink:#857141;  --if5fg:#241C14;
+    --if3:#DD8344;  --if3bg:#FBF0E9;  --if3ink:#9B5C30;  --if3fg:#241C14;
+    --if0:#704264;  --if0bg:#EEE8EC;  --if0ink:#704264;  --if0fg:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);line-height:1.7;font-size:15px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Roboto,sans-serif;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+  header{padding:34px 0 26px;border-bottom:1px solid var(--line);background:#fff}
+  .back{display:inline-block;font-size:13px;color:var(--sub);text-decoration:none;margin-bottom:14px}
+  .back:hover{color:var(--brand)}
+  h1{font-size:26px;margin:0 0 8px;letter-spacing:.3px}
+  .lead{color:var(--sub);font-size:14px;margin:0 0 18px;max-width:820px}
+  .box{position:relative;max-width:760px}
+  #q{
+    width:100%;padding:14px 46px 14px 16px;font-size:16px;color:var(--ink);
+    border:1px solid var(--line);border-radius:10px;background:#fff;outline:none;
+    font-family:inherit;transition:.15s;box-shadow:0 1px 2px rgba(15,43,70,.04);
+  }
+  #q:focus{border-color:#9db6e8;box-shadow:0 0 0 3px var(--brand-soft)}
+  #clr{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    width:26px;height:26px;border:none;border-radius:50%;background:#eef2f7;color:#8a99a8;
+    cursor:pointer;font-size:14px;line-height:1;display:none;
+  }
+  #clr:hover{background:#e2e8f0;color:var(--ink)}
+  .stat{margin:12px 0 0;font-size:12.5px;color:#8a99a8}
+  .dl{margin:14px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+  .dl a{
+    font-size:12.5px;color:var(--sub);text-decoration:none;border:1px solid var(--line);
+    border-radius:6px;padding:4px 10px;background:#fff;transition:.15s;
+  }
+  .dl a:hover{border-color:#b9c6d6;color:var(--ink)}
+  main{padding:0 0 40px}
+  .tbl{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:18px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{
+    text-align:left;padding:10px 12px;background:#fbfcfe;color:var(--sub);
+    font-weight:600;font-size:12.5px;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  tbody td{padding:10px 12px;border-bottom:1px solid #f0f4f9;vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafcff}
+  .jn{font-weight:600;color:var(--ink);line-height:1.4}
+  .ja{display:block;font-size:11.5px;color:#8a99a8;font-weight:400;margin-top:2px}
+  .issn{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--sub);white-space:nowrap}
+  .badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .lv20{color:var(--if20fg);background:var(--if20)}
+  .lv10{color:var(--if10fg);background:var(--if10)}
+  .lv5{color:var(--if5fg);background:var(--if5)}
+  .lv3{color:var(--if3fg);background:var(--if3)}
+  .lv0{color:var(--if0fg);background:var(--if0)}
+  .qv{font-weight:700;color:var(--sub);white-space:nowrap}
+  .cn{white-space:nowrap}
+  .cn b{font-weight:700;color:var(--ink)}
+  .top{display:inline-block;margin-left:6px;padding:0 5px;border-radius:4px;font-size:10.5px;font-weight:700;color:#7c3aed;background:#f3e8ff}
+  .cat{font-size:12px;color:var(--sub);line-height:1.5}
+  .empty{padding:38px 16px;text-align:center;color:#8a99a8;font-size:13.5px}
+  .hint{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:18px;font-size:13px;color:var(--sub)}
+  .hint code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-size:12px;font-family:ui-monospace,Consolas,monospace}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--sub)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+  footer{padding:26px 0 40px;color:#8a99a8;font-size:12.5px;border-top:1px solid var(--line);margin-top:10px}
+  @media (max-width:760px){
+    .wrap{padding:0 16px}
+    header{padding:24px 0 20px}
+    h1{font-size:22px}
+    thead{display:none}
+    tbody td{display:block;padding:4px 14px;border:none}
+    tbody tr{display:block;padding:12px 0;border-bottom:1px solid #f0f4f9}
+    tbody td:first-child{padding-top:6px;padding-bottom:6px}
+    .k{display:inline-block;font-size:11.5px;color:#98a7b6;margin-right:6px}
+  }
+  @media (min-width:761px){
+    .k{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="back" href="./">← 返回首页</a>
+    <h1>期刊查询</h1>
+    <p class="lead">输入期刊全称、PubMed 缩写或 ISSN，查该刊的影响因子、JCR 分区与中科院大类分区。数据与插件内置库同源，共 13575 本（JCR 2025 + 中科院分区表 2025）。</p>
+    <div class="box">
+      <input id="q" type="search" autocomplete="off" spellcheck="false" autofocus
+             placeholder="Lancet / J Neurosci / Nature Reviews / 0140-6736">
+      <button id="clr" title="清空">×</button>
+    </div>
+    <p class="stat" id="stat">正在加载数据…</p>
+    <div class="dl">
+      <a href="./data/journals.csv" download>下载 CSV（Excel 可开）</a>
+      <a href="./data/journals.json" download>下载 JSON</a>
+      <a href="./">安装扩展</a>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:#00663F"></i>IF ≥ 20</span>
+      <span><i class="dot" style="background:#2E9968"></i>10–20</span>
+      <span><i class="dot" style="background:#F2CD76"></i>5–10</span>
+      <span><i class="dot" style="background:#DD8344"></i>3–5</span>
+      <span><i class="dot" style="background:#704264"></i>低于 3</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="tbl">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34%">期刊</th>
+            <th style="width:12%">ISSN</th>
+            <th style="width:10%">影响因子</th>
+            <th style="width:9%">JCR 分区</th>
+            <th style="width:14%">中科院分区</th>
+            <th>学科类别</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="empty" class="empty" style="display:none"></div>
+    </div>
+    <div class="hint" id="hint" style="display:none">
+      没查到？<b>可能是这本刊不在 JCR 收录范围内</b>，也可能是我们漏了。
+      到 <a href="./#feedback">反馈页</a>提交刊名即可，收到后会核对着补进库。
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    数据来源 Clarivate JCR 2025 · 中科院分区表 2025 · 仅作个人查阅参考，版权归原机构所有 · MIT 许可
+  </div>
+</footer>
+
+<script>
+(function () {
+  var ALL = [];
+  var loaded = false;
+  var elQ = document.getElementById('q');
+  var elRows = document.getElementById('rows');
+  var elStat = document.getElementById('stat');
+  var elEmpty = document.getElementById('empty');
+  var elClr = document.getElementById('clr');
+  var elHint = document.getElementById('hint');
+  var timer = null;
+
+  function norm(s) {
+    return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+  function issnKey(s) {
+    return (s || '').replace(/[^0-9Xx]/g, '').toUpperCase();
+  }
+  function level(v) {
+    if (v >= 20) return 'lv20';
+    if (v >= 10) return 'lv10';
+    if (v >= 5) return 'lv5';
+    if (v >= 3) return 'lv3';
+    return 'lv0';
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function rowHtml(e) {
+    var q = e.q || '—';
+    var cn = e.cn ? '<b>' + e.cn + '</b>区' : '—';
+    var top = e.top ? '<span class="top">Top</span>' : '';
+    var issn = e.issn || '—';
+    return '<tr>'
+      + '<td><div class="jn">' + esc(e.name) + '</div>'
+      + (e.abbr && e.abbr !== e.name ? '<span class="ja">' + esc(e.abbr) + '</span>' : '')
+      + '</td>'
+      + '<td><span class="k">ISSN </span><span class="issn">' + esc(issn) + '</span></td>'
+      + '<td><span class="k">IF </span><span class="badge ' + level(e.if) + '">' + esc(e.if.toFixed(1)) + '</span></td>'
+      + '<td><span class="k">JCR </span><span class="qv">' + esc(q) + '</span></td>'
+      + '<td><span class="k">中科院 </span><span class="cn">' + cn + top + '</span></td>'
+      + '<td><span class="k">学科 </span><span class="cat">' + esc(e.cat || '—') + '</span></td>'
+      + '</tr>';
+  }
+
+  function render(list, total) {
+    if (!list.length) {
+      elRows.innerHTML = '';
+      elEmpty.style.display = '';
+      elEmpty.textContent = '没有匹配的期刊';
+      elHint.style.display = '';
+      return;
+    }
+    elEmpty.style.display = 'none';
+    elHint.style.display = total ? '' : 'none';
+    elRows.innerHTML = list.map(rowHtml).join('');
+  }
+
+  function search(raw) {
+    var s = (raw || '').trim();
+    if (!s) return ALL.slice(0, 50);
+    var nq = norm(s);
+    var iq = issnKey(s);
+    if (!nq && !iq) return [];
+    var hits = [];
+    for (var i = 0; i < ALL.length; i++) {
+      var e = ALL[i], sc = 0;
+      if (nq && e.nk === nq) sc = 100;
+      else if (iq.length === 8 && e.ni === iq) sc = 96;
+      else if (nq && e.nn === nq) sc = 90;
+      else if (nq && e.nk.indexOf(nq) === 0) sc = 80;
+      else if (nq && e.nn.indexOf(nq) === 0) sc = 72;
+      else if (nq.length >= 2 && e.nk.indexOf(nq) >= 0) sc = 62;
+      else if (nq.length >= 3 && e.nn.indexOf(nq) >= 0) sc = 52;
+      else if (nq.length >= 3 && e.nc.indexOf(nq) >= 0) sc = 20;
+      if (sc) hits.push([sc, e]);
+    }
+    hits.sort(function (a, b) {
+      if (b[0] !== a[0]) return b[0] - a[0];
+      if (b[1].if !== a[1].if) return b[1].if - a[1].if;
+      return a[1].name.localeCompare(b[1].name);
+    });
+    return hits.slice(0, 60).map(function (x) { return x[1]; });
+  }
+
+  function update() {
+    if (!loaded) return;
+    var s = elQ.value;
+    elClr.style.display = s ? 'block' : 'none';
+    var list = search(s);
+    render(list, s ? 1 : 0);
+    if (s.trim()) {
+      elStat.textContent = '匹配 ' + list.length + ' 本（最多显示 60 条）· 库内共 ' + ALL.length + ' 本';
+    } else {
+      elStat.textContent = '库内共 ' + ALL.length + ' 本 · 按影响因子降序显示前 50 本，输入关键词可精确查找';
+    }
+  }
+
+  elQ.addEventListener('input', function () {
+    clearTimeout(timer);
+    timer = setTimeout(update, 120);
+  });
+  elClr.addEventListener('click', function () {
+    elQ.value = '';
+    elQ.focus();
+    update();
+  });
+
+  fetch('./data/journals.json')
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (rows) {
+      ALL = rows.map(function (r) {
+        return {
+          key: r[0], abbr: r[1], name: r[2], issn: r[3],
+          if: +r[4], q: r[5], cn: r[6], top: r[7], cat: r[8] || '',
+          nk: norm(r[0]), nn: norm(r[2]), ni: issnKey(r[3]), nc: norm(r[8])
+        };
+      });
+      loaded = true;
+      update();
+    })
+    .catch(function (err) {
+      elStat.textContent = '数据加载失败：' + err.message + '。请刷新重试。';
+    });
+})();
+</script>
+</body>
+</html>

@@ -6,8 +6,18 @@
 (function () {
   'use strict';
 
-  // 当前生效的期刊库；启动时会用本地存储里的更新数据覆盖内置库
+  // 当前生效的期刊库：内置库保持原引用，更新到的那部分叠在 OVERRIDES 上，
+  // 查询时先查 OVERRIDES 再查 DB——不合并成全量副本，省掉每次页面加载的复制开销
   let DB = window.JOURNAL_IF_DB || {};
+  let OVERRIDES = {};
+  // 模糊匹配用的「前 6 字符 → 键」索引，避免 miss 时扫全表
+  let PREFIX_INDEX = null;
+  const DEBUG = false;
+
+  function log() {
+    if (DEBUG) console.log.apply(console, arguments);
+  }
+
   // 用户设置，启动时从 storage 读取；未读到则用默认值
   let SETTINGS = null;
   const REPO = 'lovest117/pubmed-if-tag';
@@ -22,7 +32,7 @@
     showQuartile: true,
     compact: false,
     hintMissing: true,
-    thresholds: [20, 10, 5, 2],
+    thresholds: [20, 10, 5, 3],
   };
 
   function cfg() {
@@ -74,27 +84,55 @@
   /**
    * 查询IF数据库，支持多种匹配方式
    */
+  /**
+   * 建「前 6 字符 → 键」索引。
+   * 模糊匹配的两个方向（key.startsWith(dbKey) / dbKey.startsWith(key)）
+   * 都要求较短一方长度 ≥ 6，因此两侧前 6 字符必然相同；
+   * 用桶查到的候选集与原全表遍历的匹配结果完全一致，只是范围从上万条降到数十条。
+   */
+  function buildPrefixIndex() {
+    const idx = Object.create(null);
+    const add = function (k) {
+      const p = k.slice(0, 6);
+      (idx[p] || (idx[p] = [])).push(k);
+    };
+    for (const k in DB) add(k);
+    // 更新过、且内置库里没有的新刊也要能参与模糊匹配
+    for (const k in OVERRIDES) if (!DB[k]) add(k);
+    PREFIX_INDEX = idx;
+  }
+
+  /** 取一条记录：更新过的优先，其次内置库 */
+  function entryOf(key) {
+    return OVERRIDES[key] || DB[key] || null;
+  }
+
   function lookupIF(journalAbbr) {
     if (!journalAbbr) return null;
-    let key = normalizeJournalName(journalAbbr);
+    const key = normalizeJournalName(journalAbbr);
+    if (!key) return null;
 
     // 精确匹配
-    if (DB[key]) return DB[key];
+    const exact = entryOf(key);
+    if (exact) return exact;
 
     // 尝试去掉 "The " 前缀
     if (key.startsWith('the ')) {
-      const noThe = key.substring(4);
-      if (DB[noThe]) return DB[noThe];
+      const noThe = entryOf(key.substring(4));
+      if (noThe) return noThe;
     }
 
-    // 有限模糊匹配
-    for (const dbKey in DB) {
-      if (dbKey === key) return DB[dbKey];
+    // 有限模糊匹配（只遍历同前缀桶）
+    if (key.length < 6 || !PREFIX_INDEX) return null;
+    const bucket = PREFIX_INDEX[key.slice(0, 6)];
+    if (!bucket) return null;
+    for (const dbKey of bucket) {
       const shorter = Math.min(key.length, dbKey.length);
       const longer = Math.max(key.length, dbKey.length);
       if (shorter >= 6 && shorter >= longer * 0.7) {
         if (key.startsWith(dbKey) || dbKey.startsWith(key)) {
-          return DB[dbKey];
+          const hit = entryOf(dbKey);
+          if (hit) return hit;
         }
       }
     }
@@ -102,19 +140,69 @@
   }
 
   /**
-   * 根据IF值返回颜色和标签；阈值可在设置页调整
+   * 颜色分级：按 20 / 10 / 5 / 3 分档，低于 3 分（不含）归入「其他」
+   * 浅色档（柔麦黄、暖陶橙）在实色块上自动改用深字，保证可读
+   */
+  const IF_PALETTE = ['#00663F', '#2E9968', '#F2CD76', '#DD8344', '#704264'];
+  const DARK_INK = '#241c14';
+
+  function hexToRgb(hex) {
+    return [1, 3, 5].map(function (i) { return parseInt(hex.substr(i, 2), 16); });
+  }
+
+  // WCAG 相对亮度，决定实色块上用白字还是深字
+  function relLum(hex) {
+    const c = hexToRgb(hex).map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+
+  // 与目标色混合，p 为主色占比
+  function mixColor(hex, target, p) {
+    const a = hexToRgb(hex);
+    const b = hexToRgb(target);
+    const out = a.map(function (v, i) { return Math.round(v * p + b[i] * (1 - p)); });
+    return '#' + out.map(function (v) { return (v < 16 ? '0' : '') + v.toString(16); }).join('');
+  }
+
+  // WCAG 对比度
+  function contrast(c1, c2) {
+    const a = relLum(c1);
+    const b = relLum(c2);
+    const hi = Math.max(a, b);
+    const lo = Math.min(a, b);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  // 白底上的文字要读得清（≥4.5），主色偏浅时逐步加深
+  function readableInk(main) {
+    for (let p = 1; p >= 0.4; p -= 0.15) {
+      const c = p === 1 ? main : mixColor(main, '#000000', p);
+      if (contrast(c, '#ffffff') >= 4.5) return c;
+    }
+    return mixColor(main, '#000000', 0.4);
+  }
+
+  /**
+   * 根据IF值返回一套颜色；阈值可在设置页调整
+   * solid 实色块底色 / fg 块上文字 / ink 白底文字 / tint 高亮淡底
    */
   function getIFColors(ifValue) {
     const t = cfg().thresholds;
-    let color = '#94a3b8'; // 文字色
-    let bg = '#f1f5f9';    // 浅底色（用于高亮和badge背景）
-    let hl = '#f8fafc';    // 高亮背景（更淡一点）
-    if (ifValue >= t[0]) { color = '#b91c1c'; bg = '#fef2f2'; hl = '#fee2e2'; }
-    else if (ifValue >= t[1]) { color = '#c2410c'; bg = '#fff7ed'; hl = '#ffedd5'; }
-    else if (ifValue >= t[2]) { color = '#b45309'; bg = '#fffbeb'; hl = '#fef3c7'; }
-    else if (ifValue >= t[3]) { color = '#15803d'; bg = '#f0fdf4'; hl = '#dcfce7'; }
-    else if (ifValue > 0) { color = '#64748b'; bg = '#f8fafc'; hl = '#f1f5f9'; }
-    return { color, bg, hl };
+    let idx = 4;
+    if (ifValue >= t[0]) idx = 0;
+    else if (ifValue >= t[1]) idx = 1;
+    else if (ifValue >= t[2]) idx = 2;
+    else if (ifValue >= t[3]) idx = 3;
+    const solid = IF_PALETTE[idx];
+    return {
+      solid: solid,
+      fg: contrast(solid, '#ffffff') >= 3.0 ? '#ffffff' : DARK_INK,
+      ink: readableInk(solid),
+      tint: mixColor(solid, '#ffffff', 0.12),
+    };
   }
 
   /**
@@ -149,7 +237,7 @@
     const badge = document.createElement('span');
     badge.className = 'pifh-if-badge';
     badge.dataset.pifhBadge = 'true';
-    const { color, bg } = getIFColors(ifInfo.if);
+    const { solid, fg, ink } = getIFColors(ifInfo.if);
     const compact = !!cfg().compact;
     const qLabel = (cfg().showQuartile && ifInfo.q)
       ? ` <span style="opacity:0.7">(${ifInfo.q})</span>` : '';
@@ -164,9 +252,9 @@
       border-radius: ${compact ? 4 : 10}px;
       font-size: ${compact ? 10 : 11}px;
       font-weight: 500;
-      color: ${color};
-      background: ${compact ? 'transparent' : bg};
-      border: 1px solid ${color}${compact ? '55' : '33'};
+      color: ${compact ? ink : fg};
+      background: ${compact ? 'transparent' : solid};
+      border: 1px solid ${compact ? solid + '55' : solid};
       vertical-align: middle;
       cursor: pointer;
       white-space: nowrap;
@@ -174,6 +262,9 @@
     `;
     const casTitle = ifInfo.cn ? ` | 中科院${ifInfo.cn}区${ifInfo.top ? ' Top' : ''}` : '';
     badge.title = `${ifInfo.name} | JCR ${ifInfo.q || 'N/A'}区 | IF ${ifInfo.if}${casTitle} | 点击复制`;
+    // 说明用途即可，不开放 tabindex：每行一个徽章全可聚焦会让 Tab 逐个穿过几十个焦点
+    badge.setAttribute('role', 'button');
+    badge.setAttribute('aria-label', `复制期刊信息：${ifInfo.name}，IF ${ifInfo.if}`);
 
     // 点击徽章复制「期刊全称 IF xx.x (Qx) 中科院x区」
     badge.addEventListener('click', function (e) {
@@ -267,7 +358,7 @@
     const parts = splitCitationForHighlight(fullText);
     if (!parts) return false;
 
-    const { hl, color } = getIFColors(ifInfo.if);
+    const { tint, ink } = getIFColors(ifInfo.if);
 
     // 检查是否已经高亮过
     if (el.querySelector('[data-pifh-hl]')) return true;
@@ -283,8 +374,8 @@
     hlSpan.dataset.pifhHl = 'true';
     hlSpan.textContent = parts.highlight;
     hlSpan.style.cssText = `
-      background: ${hl};
-      color: ${color};
+      background: ${tint};
+      color: ${ink};
       font-weight: 600;
       border-radius: 3px;
       padding: 0 3px;
@@ -376,7 +467,7 @@
   function processArticleDetailPage() {
     // 直接找 short-citation 容器
     const citations = document.querySelectorAll('.short-citation, .article-source');
-    console.log('[Pubmed IF Tag][详情页] 找到', citations.length, '个引用容器');
+    log('[Pubmed IF Tag][详情页] 找到', citations.length, '个引用容器');
 
     citations.forEach(citEl => {
       if (citEl.querySelector('[data-pifh-badge]')) return;
@@ -403,13 +494,13 @@
           continue;
         }
 
-        const { hl, color } = getIFColors(ifInfo.if);
+        const { tint, ink } = getIFColors(ifInfo.if);
 
         // 高亮这个文本节点的父元素
         const parent = node.parentElement;
         if (parent && parent.tagName !== 'A') {
-          parent.style.backgroundColor = hl;
-          parent.style.color = color;
+          parent.style.backgroundColor = tint;
+          parent.style.color = ink;
           parent.style.fontWeight = '600';
           parent.style.borderRadius = '3px';
           parent.style.padding = '0 3px';
@@ -425,7 +516,7 @@
 
     // 兜底：如果short-citation方式没找到，直接扫描页面文本
     if (!document.querySelector('[data-pifh-badge]')) {
-      console.log('[Pubmed IF Tag][详情页] short-citation未找到，扫描全页文本节点');
+      log('[Pubmed IF Tag][详情页] short-citation未找到，扫描全页文本节点');
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
       let node;
       while ((node = walker.nextNode())) {
@@ -444,11 +535,11 @@
         const sibText = parent ? parent.textContent : '';
         if (!/(19|20)\d{2}/.test(sibText)) continue;
 
-        console.log('[Pubmed IF Tag][详情页] 全页扫描找到期刊:', cleanText, 'IF=' + ifInfo.if);
-        const { hl, color } = getIFColors(ifInfo.if);
+        log('[Pubmed IF Tag][详情页] 全页扫描找到期刊:', cleanText, 'IF=' + ifInfo.if);
+        const { tint, ink } = getIFColors(ifInfo.if);
         if (parent && parent.tagName !== 'A') {
-          parent.style.backgroundColor = hl;
-          parent.style.color = color;
+          parent.style.backgroundColor = tint;
+          parent.style.color = ink;
           parent.style.fontWeight = '600';
           parent.style.borderRadius = '3px';
           parent.style.padding = '0 3px';
@@ -522,9 +613,9 @@
       }
       if (!row || !/(19|20)\d{2}/.test(row.textContent || '')) continue;
 
-      const { hl, color } = getIFColors(ifInfo.if);
-      btn.style.backgroundColor = hl;
-      btn.style.color = color;
+      const { tint, ink } = getIFColors(ifInfo.if);
+      btn.style.backgroundColor = tint;
+      btn.style.color = ink;
       btn.style.fontWeight = '600';
       btn.style.borderRadius = '3px';
       btn.style.padding = '0 3px';
@@ -581,23 +672,53 @@
 
   // ========== MutationObserver 监听动态加载 ==========
 
+  const OWN_NODE_ATTRS = ['data-pifh-badge', 'data-pifh-hl', 'data-pifh-missing'];
+
+  /**
+   * 新增节点是否是本插件自己插入的。
+   * 标注动作会往页面里插 badge / 高亮 span，若不排除，它们又会触发观察器，
+   * 形成「标注 → 触发 → 再扫描」的自激往返，白跑多轮全页扫描。
+   */
+  function isOwnNode(n) {
+    if (!n || n.nodeType !== 1 || !n.hasAttribute) return false;
+    for (let i = 0; i < OWN_NODE_ATTRS.length; i++) {
+      if (n.hasAttribute(OWN_NODE_ATTRS[i])) return true;
+    }
+    return false;
+  }
+
+  /**
+   * 在浏览器空闲时执行扫描，避免和 PubMed 首屏渲染抢主线程。
+   * 没有 requestIdleCallback（或页面持续繁忙）时由 timeout 兜底，保证一定会跑。
+   */
+  function scheduleScan() {
+    if (typeof requestIdleCallback !== 'function') {
+      processPage();
+      return;
+    }
+    requestIdleCallback(function () { processPage(); }, { timeout: 600 });
+  }
+
   function setupObserver() {
     if (RUNTIME.observer) RUNTIME.observer.disconnect();
 
     RUNTIME.observer = new MutationObserver((mutations) => {
-      let needsProcess = false;
       for (const m of mutations) {
-        if (m.addedNodes.length > 0) {
-          needsProcess = true;
-          break;
+        if (m.addedNodes.length === 0) continue;
+
+        let hasExternalAdd = false;
+        for (const n of m.addedNodes) {
+          if (!isOwnNode(n)) {
+            hasExternalAdd = true;
+            break;
+          }
         }
-      }
-      if (needsProcess) {
-        // 防抖
+        // 整批新增都是自己插的标签，无需重扫
+        if (!hasExternalAdd) continue;
+
         clearTimeout(RUNTIME._t);
-        RUNTIME._t = setTimeout(() => {
-          processPage();
-        }, 300);
+        RUNTIME._t = setTimeout(scheduleScan, 350);
+        return;
       }
     });
 
@@ -616,16 +737,18 @@
     try {
       if (window.PIFLibrary && window.PIFLibrary.getActiveLibrary) {
         const active = await window.PIFLibrary.getActiveLibrary();
-        if (active && active.entries && Object.keys(active.entries).length > 0) {
-          DB = active.entries;
-          console.log('[Pubmed IF Tag] 期刊库来源: ' + active.source + '，生效条数: ' + Object.keys(DB).length);
-          return;
+        if (active && active.builtin && Object.keys(active.builtin).length > 0) {
+          DB = active.builtin;
+          OVERRIDES = active.overrides || {};
+          log('[Pubmed IF Tag] 期刊库来源: ' + active.source +
+            '，内置 ' + Object.keys(DB).length + ' 条，更新补充 ' + Object.keys(OVERRIDES).length + ' 条' +
+            (active.staleDropped ? '，忽略过期快照 ' + active.staleDropped + ' 条' : ''));
         }
       }
     } catch (err) {
       console.warn('[Pubmed IF Tag] 读取更新库失败，退回内置库', err);
     }
-    console.log('[Pubmed IF Tag] 已加载内置库，期刊数: ' + Object.keys(DB).length);
+    buildPrefixIndex();
   }
 
   async function loadSettings() {
@@ -662,16 +785,16 @@
     }
 
     // 延迟重试：PubMed React应用可能异步加载内容
-    setTimeout(() => processPage(), 1000);
-    setTimeout(() => processPage(), 2500);
+    setTimeout(scheduleScan, 1000);
+    setTimeout(scheduleScan, 2500);
 
     // 监听URL变化（PubMed是SPA风格，翻页/搜索不刷新页面）
     let lastUrl = location.href;
     setInterval(() => {
       if (location.href !== lastUrl) {
         lastUrl = location.href;
-        setTimeout(() => processPage(), 500);
-        setTimeout(() => processPage(), 1500);
+        setTimeout(scheduleScan, 500);
+        setTimeout(scheduleScan, 1500);
       }
     }, 1000);
   }

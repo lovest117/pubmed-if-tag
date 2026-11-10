@@ -14,17 +14,22 @@
     showCAS: true,        // 标签里带中科院大类分区（1-4 区）
     compact: false,       // 紧凑样式（更小、去掉底色）
     hintMissing: true,    // 详情页查不到 IF 时给出反馈入口
-    thresholds: [20, 10, 5, 2], // 颜色分级阈值：红/橙/黄/绿
+    thresholds: [20, 10, 5, 3], // 颜色分级阈值：深墨绿/中绿/柔麦黄/暖陶橙（最低档不低于 3 分）
   };
 
   const BOOL_KEYS = ['showSearch', 'showDetail', 'showQuartile', 'showCAS', 'compact', 'hintMissing'];
 
+  const OTHER_BELOW = 3; // 低于 3 分（不含）统一归入「其他」，不参与高档着色
+
   function normalizeThresholds(t) {
     const src = Array.isArray(t) ? t : DEFAULTS.thresholds;
-    return DEFAULTS.thresholds.map(function (def, i) {
+    const out = DEFAULTS.thresholds.map(function (def, i) {
       const v = parseFloat(src[i]);
       return isFinite(v) && v > 0 ? v : def;
     });
+    // 最后一档（绿）最低 3 分，保证 <3 分始终是「其他」
+    out[out.length - 1] = Math.max(OTHER_BELOW, out[out.length - 1]);
+    return out;
   }
 
   // 阈值必须递减，否则会被 normalize 修正为默认值
