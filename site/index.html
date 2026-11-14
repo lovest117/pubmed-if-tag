@@ -99,7 +99,7 @@
   .deck .card{
     position:absolute;left:0;right:0;top:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;
     box-shadow:0 6px 20px rgba(15,43,70,.10);
-    transition:transform .6s cubic-bezier(.22,.9,.3,1), opacity .6s;
+    transition:transform .9s cubic-bezier(.25,.8,.3,1), opacity .9s;
     height:280px;
   }
   .deck .card img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left}
@@ -240,7 +240,7 @@
 
 <section>
   <div class="wrap">
-    <h2>功能范围</h2>
+    <h2>功能亮点</h2>
     <div class="grid">
       <div class="card">
         <h3>搜索结果页高亮</h3>
@@ -802,7 +802,7 @@
         deck.appendChild(deck.querySelector('.card'));  // 顶牌移到底部
         deck.classList.remove('advancing');
         animating = false;
-      }, 600);
+      }, 900);
     }
     function start() { stop(); timer = setInterval(next, 4000); }
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
