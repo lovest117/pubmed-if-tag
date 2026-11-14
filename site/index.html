@@ -94,28 +94,26 @@
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--sub)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
-  /* 效果截图 —— 三层堆叠自动翻页 */
-  .deck{position:relative;width:100%;height:340px;margin:0;perspective:1200px;cursor:pointer}
+  /* 效果截图 —— 三层堆叠，下层露出边缘，自动翻页 */
+  .deck{position:relative;width:100%;margin:0 0 30px;height:300px;cursor:pointer}
   .deck .card{
-    position:absolute;inset:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;
-    box-shadow:0 6px 20px rgba(15,43,70,.08);
-    transition:transform .55s cubic-bezier(.22,.9,.3,1), opacity .55s;
-    transform-origin:50% 0%;
+    position:absolute;left:0;right:0;top:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    box-shadow:0 6px 20px rgba(15,43,70,.10);
+    transition:transform .6s cubic-bezier(.22,.9,.3,1), opacity .6s;
+    height:280px;
   }
   .deck .card img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left}
-  .deck .card.cap-abstract img{object-position:top left}
-  .deck .card:nth-child(1){transform:translateY(0) scale(1);opacity:1;z-index:3}
-  .deck .card:nth-child(2){transform:translateY(14px) scale(.965);opacity:.55;z-index:2;filter:blur(.4px)}
-  .deck .card:nth-child(3){transform:translateY(28px) scale(.93);opacity:.25;z-index:1;filter:blur(.8px)}
-  .deck.play .card:nth-child(1){animation:deckOut .6s ease forwards}
-  .deck.done .card:nth-child(1){transform:translateY(28px) scale(.93);opacity:.25;z-index:1;filter:blur(.8px)}
-  .deck.done .card:nth-child(2){transform:translateY(0) scale(1);opacity:1;z-index:3;filter:none}
-  .deck.done .card:nth-child(3){transform:translateY(14px) scale(.965);opacity:.55;z-index:2;filter:blur(.4px)}
+  /* 静态堆叠：三张都往下偏移，形成层叠感 */
+  .deck .card:nth-child(1){transform:translateY(0);z-index:3;opacity:1}
+  .deck .card:nth-child(2){transform:translateY(16px) scale(.97);z-index:2;opacity:.6}
+  .deck .card:nth-child(3){transform:translateY(32px) scale(.94);z-index:1;opacity:.3}
+  /* 翻页动画：当前顶牌向上滑出，露出下面那张 */
+  .deck.advancing .card:nth-child(1){transform:translateY(-100%) scale(.97);opacity:0}
   .deck .tag{
     position:absolute;left:12px;bottom:10px;background:rgba(15,43,70,.78);color:#fff;font-size:11.5px;
     padding:3px 10px;border-radius:20px;letter-spacing:.3px;backdrop-filter:blur(4px);
   }
-  @media(max-width:640px){.deck{height:220px}}
+  @media(max-width:640px){.deck{height:200px}.deck .card{height:185px}}
   .figcap{font-size:12.5px;color:#8a99a8;margin:10px 0 0}
   ol,ul{margin:0;padding-left:20px}
   li{margin:6px 0}
@@ -795,16 +793,18 @@
     if (!deck) return;
     var cards = deck.querySelectorAll('.card');
     if (cards.length < 2) return;
-    var timer;
+    var timer, animating = false;
     function next() {
-      deck.classList.add('done');
+      if (animating) return;
+      animating = true;
+      deck.classList.add('advancing');
       setTimeout(function () {
-        deck.classList.remove('done');
-        deck.appendChild(cards[0]);          // 顶牌移到底部
-        cards = deck.querySelectorAll('.card');
+        deck.appendChild(deck.querySelector('.card'));  // 顶牌移到底部
+        deck.classList.remove('advancing');
+        animating = false;
       }, 600);
     }
-    function start() { stop(); timer = setInterval(next, 3800); }
+    function start() { stop(); timer = setInterval(next, 4000); }
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
     deck.addEventListener('click', function () { next(); start(); });
     deck.addEventListener('mouseenter', stop);
