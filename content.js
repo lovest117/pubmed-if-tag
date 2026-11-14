@@ -512,10 +512,14 @@
           parent.style.padding = '0 3px';
         }
 
-        // 在文本节点后插入badge
+        // 在高亮父元素之后插入 badge（不要插进高亮块内部，否则浅绿背景会把徽章也包进去，视觉上两块叠在一起）
         const badge = createIFBadge(ifInfo);
         badge.style.marginLeft = '4px';
-        node.parentNode.insertBefore(badge, node.nextSibling);
+        if (parent && parent.tagName !== 'A') {
+          parent.parentNode.insertBefore(badge, parent.nextSibling);
+        } else {
+          node.parentNode.insertBefore(badge, node.nextSibling);
+        }
         break; // 每个引用容器只处理第一个匹配
       }
     });
@@ -552,7 +556,11 @@
         }
         const badge = createIFBadge(ifInfo);
         badge.style.marginLeft = '4px';
-        node.parentNode.insertBefore(badge, node.nextSibling);
+        if (parent && parent.tagName !== 'A') {
+          parent.parentNode.insertBefore(badge, parent.nextSibling);
+        } else {
+          node.parentNode.insertBefore(badge, node.nextSibling);
+        }
         break;
       }
     }

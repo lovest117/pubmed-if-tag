@@ -188,14 +188,14 @@
       数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
     </p>
     <div class="btns">
-      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.1.zip">下载扩展（zip）</a>
+      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.2.zip">下载扩展（zip）</a>
       <a class="btn btn-ghost" href="./search.html">在线查期刊分区</a>
       <a class="btn btn-ghost" href="#feedback">反馈无 IF 标签的期刊</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
     </div>
     <p class="meta">
-      版本 <b data-ver data-ver-static>v1.3.1</b> ·
+      版本 <b data-ver data-ver-static>v1.3.2</b> ·
       <span class="pill" title="两套指标均为当前最新年度版本，每年更新一次">数据：Clarivate JCR 2025 + 中科院分区表 2025</span>
       · MIT 许可
     </p>
@@ -319,7 +319,7 @@
         </div>
         <div>
           <label for="bugVer">插件版本（可选）</label>
-          <input id="bugVer" placeholder="v1.3.1" autocomplete="off">
+          <input id="bugVer" placeholder="v1.3.2" autocomplete="off">
         </div>
       </div>
       <div class="actions">
@@ -353,7 +353,7 @@
   <div class="wrap">
     <h2>版本与更新</h2>
     <p class="lead">
-      当前最新 <b data-ver data-ver-static>v1.3.1</b>。侧载安装的版本需要手动换包；
+      当前最新 <b data-ver data-ver-static>v1.3.2</b>。侧载安装的版本需要手动换包；
       插件里点一下版本号也能查到有没有新版，有新版时那一行会直接给出下载入口。
     </p>
     <div class="grid">
@@ -373,12 +373,13 @@
       </div>
     </div>
     <div class="btns" style="margin-top:16px">
-      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.1.zip">下载 <span data-ver-static>v1.3.1</span> 安装包</a>
+      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.2.zip">下载 <span data-ver-static>v1.3.2</span> 安装包</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">全部历史版本</a>
     </div>
 
     <h3 style="font-size:14px;font-weight:600;margin:26px 0 10px">更新了什么</h3>
     <table>
+      <tr><th>v1.3.2</th><td><b>修复</b>：摘要页徽章被插进期刊名高亮块内部，浅绿/浅紫背景把徽章一起包住，视觉上两个色块叠在一起。现在徽章移到高亮块之后作为兄弟节点，高亮只包期刊名本身。</td></tr>
       <tr><th>v1.3.1</th><td><b>修复</b>：徽章悬停信息卡鼠标移走后不消失（v1.3.0 回归）。<br>筛选条升级：同一组内档位可<b>多选叠加</b>（如同时看 Q1+Q2），组间仍是交集；点选只改状态不重建按钮，消除「指上去闪一下、点下去顿一下」；芯片宽高固定，选中不再引起邻位位移。<br>每颗筛选按钮鼠标悬停弹出中文说明；筛选条右侧新增「?」帮助面板；计数行直接写出当前筛选条件摘要（如「≥10 / Q1+Q2 / 中科院1区+Top」），不再靠猜。</td></tr>
       <tr><th>v1.3.0</th><td>结果页新增<b>常驻筛选条</b>：按 IF 档位（≥20 / 10–20 / 5–10 / 3–5 / &lt;3 / 未收录）、JCR Q1–Q4、中科院 1–4 区与 Top 组合过滤，只显示你要的条目，右侧实时显示「显示 X / Y 条」。<br>新增<b>导出 CSV</b>：只导出当前筛选后可见的条目，含期刊、年份、IF、JCR 分区、中科院分区、Top、标题、PMID 与链接，UTF-8 BOM 编码，Excel 直接打开不乱码。<br>新增<b>徽章悬停信息卡</b>：鼠标停在徽章上展开期刊全称、缩写、IF、JCR、中科院与数据版本，纯展示不挡点击。<br>筛选条会贴在 PubMed 顶部导航下沿常驻；翻页、换关键词后自动重建并保留你的筛选条件。</td></tr>
       <tr><th>v1.2.1</th><td>新增<a href="./search.html">在线查期刊分区</a>：输入期刊全称、PubMed 缩写或 ISSN，即可查影响因子、JCR 分区、中科院大类分区与 Top，全表也能下载成 CSV/JSON。<br>标签配色改为 <b>3 分门槛</b>：IF 低于 3 分（不含）统一归入「其他」，不再按旧阈值着绿。<br>期刊库修正 3 本可按刊名对上、但分区表 ISSN 字段缺失的刊（Computer Law &amp; Security Review、Intelligent Systems in Accounting Finance &amp; Management、Mutation Research），现 12988 条带中科院分区；新增 <code>scripts/verify-journal-db.py</code>，可把内置库与 JCR 2025 / 分区表 2025 逐条比对（已核为零差异）。<br>性能：结果页与详情页的扫描改到浏览器空闲时段，并跳过插件自己插入的标签节点，不再「标注触发重扫」自己触发自己；期刊库查询改走前缀索引，查不到的刊不再逐条扫全表。<br>修复：点过「更新期刊数据」后再升级插件，旧快照会把新版内置库的 IF / 分区盖回旧值（现在旧快照只补内置库没有的刊）；网络卡住时拉取数据不再无限等待，9 秒超时后自动按备用源重试。</td></tr>
@@ -466,7 +467,7 @@
   'use strict';
 
   var REPO = 'lovest117/pubmed-if-tag';
-  var FALLBACK_VER = 'v1.3.1';
+  var FALLBACK_VER = 'v1.3.2';
 
   /* ---------- 版本号：以 version.json 为准，静态值只是兜底 ---------- */
   function applyVersion(v) {
