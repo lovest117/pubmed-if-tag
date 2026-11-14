@@ -686,12 +686,17 @@
 
   const UI = {
     // 筛选状态刻意不放 storage：换一页文档就该回到「全部」，避免下次打开莫名空空如也
-    filterState: { tier: 'all', q: '', cn: '', top: false },
+    // 1.3.1：组内支持多选（并集），组间仍是交集，所以三组各存一个数组
+    filterState: { tiers: [], noneOnly: false, qs: [], cns: [], top: false },
     card: null,
     lastBadge: null,
     cardTimer: null,
     hideTimer: null,
     hoverBound: false,
+    // 1.3.1：chip 说明气泡与滚动安慰
+    tip: null,
+    tipTimer: null,
+    tipBound: false,
   };
 
   /**
@@ -734,14 +739,41 @@
   function matchFilter(item) {
     const f = UI.filterState;
     const badge = badgeOf(item);
-    if (f.tier === 'none') return !badge;
-    if (f.tier !== 'all') {
-      if (!badge || tierOf(parseFloat(badge.dataset.pifhIf)) !== f.tier) return false;
+    // 未收录是独立开关，与 IF 档位互斥
+    if (f.noneOnly) return !badge;
+    if (f.tiers.length) {
+      if (!badge) return false;
+      if (f.tiers.indexOf(tierOf(parseFloat(badge.dataset.pifhIf))) === -1) return false;
     }
-    if (f.q && (!badge || (badge.dataset.pifhQ || '') !== f.q)) return false;
-    if (f.cn && (!badge || (badge.dataset.pifhCn || '') !== f.cn)) return false;
+    if (f.qs.length && (!badge || f.qs.indexOf(badge.dataset.pifhQ || '') === -1)) return false;
+    if (f.cns.length && (!badge || f.cns.indexOf(badge.dataset.pifhCn || '') === -1)) return false;
     if (f.top && (!badge || badge.dataset.pifhTop !== '1')) return false;
     return true;
+  }
+
+  /** 当前筛选条件的中文摘要，直接写进计数行，用户不用猜为什么条数变了 */
+  function filterSummary() {
+    const f = UI.filterState;
+    const t = cfg().thresholds;
+    const parts = [];
+    if (f.noneOnly) {
+      parts.push('无 IF 标签');
+    } else if (f.tiers.length) {
+      // 组内多选用「/」表示并集，组与组之间用「+」表示交集，一眼能看出逻辑
+      const map = {};
+      map.t20 = 'IF ≥ ' + t[0];
+      map.t10 = 'IF ' + t[1] + '–' + t[0];
+      map.t5 = 'IF ' + t[2] + '–' + t[1];
+      map.t3 = 'IF ' + t[3] + '–' + t[2];
+      map.t0 = 'IF < ' + t[3];
+      const labels = f.tiers.map(function (k) { return map[k]; }).filter(Boolean);
+      if (labels.length === 1) parts.push(labels[0]);
+      else if (labels.length > 1) parts.push(labels.join(' / '));
+    }
+    if (f.qs.length) parts.push('JCR ' + f.qs.join('/'));
+    if (f.cns.length) parts.push('中科院 ' + f.cns.map(function (n) { return n + '区'; }).join('/'));
+    if (f.top) parts.push('Top');
+    return parts.join(' + ');
   }
 
   function applyFilter() {
@@ -752,26 +784,94 @@
       if (ok) shown++;
       el.classList.toggle('pifh-hidden', !ok);
     });
-    const countEl = document.querySelector('.pifh-filter .pifh-count');
-    if (countEl) countEl.textContent = '显示 ' + shown + ' / ' + items.length + ' 条';
+    const bar = document.querySelector('[data-pifh-filter]');
+    const sum = filterSummary();
+    if (bar) {
+      const countEl = bar.querySelector('.pifh-count');
+      if (countEl) {
+        countEl.textContent = sum
+          ? '显示 ' + shown + ' / ' + items.length + ' 条 · ' + sum
+          : '共 ' + items.length + ' 条';
+      }
+      const ex = bar.querySelector('.pifh-export');
+      if (ex) ex.title = '只导出当前看到的 ' + shown + ' 条';
+    }
   }
 
-  function makeChip(label, active, dotColor, onClick) {
+  /** 按 filterState 刷新每颗 chip 的选中态（原地改属性，不重建任何节点） */
+  function syncChips() {
+    const bar = document.querySelector('[data-pifh-filter]');
+    if (!bar) return;
+    const f = UI.filterState;
+    const chips = bar.querySelectorAll('.pifh-chip');
+    for (let i = 0; i < chips.length; i++) {
+      const key = chips[i].dataset.pifhKey || '';
+      let on = false;
+      if (key === 'tier:all') on = !f.tiers.length && !f.noneOnly;
+      else if (key === 'tier:none') on = f.noneOnly;
+      else if (key.indexOf('tier:') === 0) on = f.tiers.indexOf(key.slice(5)) !== -1;
+      else if (key.indexOf('q:') === 0) on = f.qs.indexOf(key.slice(2)) !== -1;
+      else if (key.indexOf('cn:') === 0) on = f.cns.indexOf(key.slice(3)) !== -1;
+      else if (key === 'top') on = !!f.top;
+      if (on) chips[i].dataset.on = '1';
+      else delete chips[i].dataset.on;
+    }
+  }
+
+  /** 组内多选切换：已在集合里就移除，否则加入，返回新数组（不改原数组） */
+  function toggleIn(list, value) {
+    const next = list.slice();
+    const at = next.indexOf(value);
+    if (at === -1) next.push(value);
+    else next.splice(at, 1);
+    return next;
+  }
+
+  /**
+   * 点选只改状态，不重建筛选条。
+   * 旧实现每次点选都把 16 颗按钮销毁重建，鼠标下的对象被换掉、hover 态中途丢失，
+   * 体感就是「指上去闪一下」「点下去顿一下」。
+   */
+  function setFilterState(patch) {
+    Object.assign(UI.filterState, patch);
+    syncChips();
+    applyFilter();
+    hideChipTip();
+  }
+
+  /**
+   * 造一颗筛选 chip。
+   * 宽高由 CSS 固定（w-wide 档给 IF 文字较长的档位），选中只换颜色，
+   * 所以任意点选都不会引起宽度抖动与邻位重排。
+   */
+  function makeChip(o) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'pifh-chip';
-    if (active) btn.dataset.on = '1';
-    if (dotColor) {
+    btn.className = 'pifh-chip' + (o.wide ? ' pifh-w-wide' : '');
+    btn.dataset.pifhKey = o.key;
+    if (o.on) btn.dataset.on = '1';
+    if (o.hint) {
+      btn.dataset.pifhHint = o.hint;
+      // 目标就是按钮自己，不依赖冒泡；延迟由 CSS 的 transition-delay 负责，
+      // 省掉 JS 定时器（iframe 里的 timer 会被浏览器节流，容易出不来）
+      btn.addEventListener('mouseover', function () { showChipTip(btn); });
+      btn.addEventListener('mouseout', function (e) {
+        const to = e.relatedTarget;
+        if (to && btn.contains(to)) return;
+        hideChipTip();
+      });
+    }
+    if (o.dot) {
       const dot = document.createElement('span');
       dot.className = 'pifh-chip-dot';
-      dot.style.background = dotColor;
+      dot.style.background = o.dot;
       btn.appendChild(dot);
     }
-    btn.appendChild(document.createTextNode(label));
+    btn.appendChild(document.createTextNode(o.label));
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      onClick();
+      o.onClick();
     });
     return btn;
   }
@@ -787,6 +887,66 @@
     return g;
   }
 
+  // ---------- chip 悬停说明气泡 ----------
+
+  function ensureChipTip() {
+    if (UI.tip && UI.tip.parentNode) return UI.tip;
+    const d = document.createElement('div');
+    d.className = 'pifh-tip';
+    d.dataset.pifhAux = 'true';
+    document.body.appendChild(d);
+    UI.tip = d;
+    return d;
+  }
+
+  function showChipTip(chip) {
+    const hint = chip.dataset.pifhHint;
+    if (!hint) return;
+    const tip = ensureChipTip();
+    if (tip.textContent !== hint) tip.textContent = hint;
+    tip.removeAttribute('data-on');
+    const r = chip.getBoundingClientRect();
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
+    let left = Math.round(r.left + r.width / 2 - tw / 2);
+    left = Math.max(6, Math.min(window.innerWidth - tw - 6, left));
+    let top = Math.round(r.bottom + 7);
+    if (top + th > window.innerHeight - 6) top = Math.round(r.top - th - 7);
+    tip.style.left = left + 'px';
+    tip.style.top = Math.max(6, top) + 'px';
+    tip.dataset.on = '1';
+  }
+
+  function hideChipTip() {
+    clearTimeout(UI.tipTimer);
+    if (UI.tip) UI.tip.removeAttribute('data-on');
+  }
+
+  function bindChipTips() {
+    if (UI.tipBound) return;
+    UI.tipBound = true;
+    // 气泡是 fixed 定位，滚动后就跟 chip 脱开了，直接收起
+    window.addEventListener('scroll', hideChipTip, { passive: true, capture: true });
+  }
+
+  /** ? 帮助面板：点开/再点关闭，鼠标离开筛选条也收起 */
+  function bindHelp(bar) {
+    const btn = bar.querySelector('.pifh-help');
+    const box = bar.querySelector('.pifh-helpbox');
+    if (!btn || !box) return;
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (box.hasAttribute('hidden')) box.removeAttribute('hidden');
+      else box.setAttribute('hidden', '');
+    });
+    box.addEventListener('click', function (e) { e.stopPropagation(); });
+    bar.addEventListener('mouseleave', function () {
+      if (!box.hasAttribute('hidden')) box.setAttribute('hidden', '');
+      hideChipTip();
+    });
+  }
+
   function buildFilterBar() {
     const f = UI.filterState;
     const t = cfg().thresholds;
@@ -799,46 +959,95 @@
     main.className = 'pifh-main';
     bar.appendChild(main);
 
-    const gTier = makeGroup(main, 'IF');
-    const tiers = [
-      ['全部', 'all', ''],
-      ['≥' + t[0], 't20', IF_PALETTE[0]],
-      [t[1] + '–' + t[0], 't10', IF_PALETTE[1]],
-      [t[2] + '–' + t[1], 't5', IF_PALETTE[2]],
-      [t[3] + '–' + t[2], 't3', IF_PALETTE[3]],
-      ['<' + t[3], 't0', IF_PALETTE[4]],
-      ['未收录', 'none', '#cbd5e1']
+    const gTier = makeGroup(main, '影响因子');
+    // IF 档位统一用加宽档：10–20 / 未收录 这类文字更长，宽度不统一就会出现点选位移
+    const tierDefs = [
+      ['全部', 'tier:all', '', '显示全部条目'],
+      ['≥' + t[0], 'tier:t20', IF_PALETTE[0], 'IF ≥ ' + t[0] + ' · 顶级期刊'],
+      [t[1] + '–' + t[0], 'tier:t10', IF_PALETTE[1], 'IF ' + t[1] + '–' + t[0] + ' · 优秀'],
+      [t[2] + '–' + t[1], 'tier:t5', IF_PALETTE[2], 'IF ' + t[2] + '–' + t[1] + ' · 良好'],
+      [t[3] + '–' + t[2], 'tier:t3', IF_PALETTE[3], 'IF ' + t[3] + '–' + t[2] + ' · 一般'],
+      ['<' + t[3], 'tier:t0', IF_PALETTE[4], 'IF < ' + t[3] + ' · 较低'],
+      ['未收录', 'tier:none', '#cbd5e1', '库里没有这本刊的指标']
     ];
-    tiers.forEach(function (item) {
-      gTier.appendChild(makeChip(item[0], f.tier === item[1], item[2], function () {
-        f.tier = (f.tier === item[1] && item[1] !== 'all') ? 'all' : item[1];
-        refreshFilterBar();
+    tierDefs.forEach(function (item) {
+      const label = item[0];
+      const key = item[1];
+      const dot = item[2];
+      const hint = item[3];
+      const value = key.slice(5);
+      gTier.appendChild(makeChip({
+        label: label,
+        key: key,
+        wide: true,
+        dot: dot,
+        hint: hint,
+        on: value === 'all' ? (!f.tiers.length && !f.noneOnly) : (value === 'none' ? f.noneOnly : f.tiers.indexOf(value) !== -1),
+        onClick: function () {
+          // 「全部」清空整组；其余档位在组内叠加，再点一次取消
+          if (value === 'all') {
+            setFilterState({ tiers: [], noneOnly: false });
+          } else if (value === 'none') {
+            setFilterState({ tiers: [], noneOnly: !UI.filterState.noneOnly });
+          } else {
+            setFilterState({ tiers: toggleIn(UI.filterState.tiers, value), noneOnly: false });
+          }
+        }
       }));
     });
 
     // 组与组之间靠标签和间距区分，不再用竖线分隔（换行时会落单）
     const gQ = makeGroup(main, 'JCR');
-    ['Q1', 'Q2', 'Q3', 'Q4'].forEach(function (q) {
-      gQ.appendChild(makeChip(q, f.q === q, '', function () {
-        f.q = (f.q === q) ? '' : q;
-        refreshFilterBar();
+    const qDefs = [
+      ['Q1', '学科前 25%'],
+      ['Q2', '25–50%'],
+      ['Q3', '50–75%'],
+      ['Q4', '后 25%']
+    ];
+    qDefs.forEach(function (item) {
+      const q = item[0];
+      gQ.appendChild(makeChip({
+        label: q,
+        key: 'q:' + q,
+        hint: 'JCR ' + q + ' · ' + item[1],
+        on: f.qs.indexOf(q) !== -1,
+        onClick: function () {
+          setFilterState({ qs: toggleIn(UI.filterState.qs, q) });
+        }
       }));
     });
 
     const gCn = makeGroup(main, '中科院');
-    ['1', '2', '3', '4'].forEach(function (n) {
-      gCn.appendChild(makeChip(n + '区', f.cn === n, '', function () {
-        f.cn = (f.cn === n) ? '' : n;
-        refreshFilterBar();
+    // Top 排在中科院组第一位：它是该体系里最高的那档，放在 1–4 区前面更顺
+    gCn.appendChild(makeChip({
+      label: 'Top',
+      key: 'top',
+      hint: '中科院 Top 期刊',
+      on: !!f.top,
+      onClick: function () {
+        setFilterState({ top: !UI.filterState.top });
+      }
+    }));
+    const cnDefs = [
+      ['1', '前 5%'],
+      ['2', '5–20%'],
+      ['3', '20–50%'],
+      ['4', '后 50%']
+    ];
+    cnDefs.forEach(function (item) {
+      const n = item[0];
+      gCn.appendChild(makeChip({
+        label: n + '区',
+        key: 'cn:' + n,
+        hint: '中科院大类 ' + n + ' 区 · ' + item[1],
+        on: f.cns.indexOf(n) !== -1,
+        onClick: function () {
+          setFilterState({ cns: toggleIn(UI.filterState.cns, n) });
+        }
       }));
     });
 
-    // Top 归在中科院体系里，跟在 1–4 区后面，换行时不会孤零零掉一行
-    const chipTop = makeChip('Top', f.top, '', function () {
-      f.top = !f.top;
-      refreshFilterBar();
-    });
-    gCn.appendChild(chipTop);
+    // Top 已在组首插入，这里只补 1–4 区
 
     const count = document.createElement('span');
     count.className = 'pifh-count';
@@ -856,6 +1065,29 @@
     });
     bar.appendChild(btn);
 
+    const help = document.createElement('button');
+    help.type = 'button';
+    help.className = 'pifh-help';
+    help.textContent = '?';
+    help.title = '筛选说明';
+    bar.appendChild(help);
+
+    const box = document.createElement('div');
+    box.className = 'pifh-helpbox';
+    box.dataset.pifhAux = 'true';
+    box.setAttribute('hidden', '');
+    box.innerHTML = '<b>筛选怎么用</b><ul>' +
+      '<li>同一组里可以同时选多个（取并集），例如 JCR 同时选 Q1 和 Q2。</li>' +
+      '<li>三组之间取交集，例如 IF ≥' + t[0] + ' + JCR Q1 就是既高分又是 Q1。</li>' +
+      '<li>再点一次已选的按钮即取消；点「全部」清空该组。</li>' +
+      '<li>「导出 CSV」只导出当前看到的条目，被筛掉的不写入。</li>' +
+      '<li>筛选只影响显示，不改动 PubMed 的原列表与检索结果。</li>' +
+      '</ul>';
+    bar.appendChild(box);
+
+    bindChipTips();
+    bindHelp(bar);
+
     return bar;
   }
 
@@ -871,6 +1103,14 @@
       if (old) old.remove();
       return;
     }
+    // 条还在页面上就复用，只同步状态：翻页、加载更多都走这条路，
+    // 免得每次扫描都销毁重建一遍（重建本身就会闪）。
+    if (old && old.isConnected) {
+      syncChips();
+      applyFilter();
+      syncFilterTop(old);
+      return;
+    }
     const bar = buildFilterBar();
     if (old && old.parentNode) {
       old.parentNode.replaceChild(bar, old);
@@ -883,6 +1123,7 @@
       }
     }
     syncFilterTop(bar);
+    syncChips();
     applyFilter();
   }
 
@@ -1065,7 +1306,9 @@
   }
 
   function hideCard() {
-    if (UI.card) UI.card.dataset.on = '';
+    // 注意：dataset.on = '' 只是把值置空，属性仍然存在，
+    // .pifh-card[data-on] 照样命中 → 卡片会一直亮着不消失。必须真正移除属性。
+    if (UI.card) delete UI.card.dataset.on;
   }
 
   /**

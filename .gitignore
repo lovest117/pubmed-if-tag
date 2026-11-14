@@ -20,3 +20,5 @@ data/journal-if.js.bak2
 /*.xlsx
 # 本地回归用的 mock 页与检查脚本，只在本机跑，不随仓库发布
 _test/
+# 导出的期刊数据包（供 AI/外部程序读取，约 2 MB，可随时用 scripts 重新生成）
+export/

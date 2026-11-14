@@ -45,117 +45,304 @@
   background: #eff6ff;
 }
 
-/* ========== 1.3.0：结果页筛选条 ========== */
+/* ========== 1.3.1：结果页筛选条 ==========
+   三条硬规则：
+   1. 每颗 chip 宽高固定，选中只换颜色，永不改变尺寸 → 点选零位移、零重排；
+   2. 外观自持（appearance + !important + color-scheme），
+      否则宿主页面/浏览器夜间模式会把 button 统一染深，选中态就看不出来了；
+   3. 悬停只做颜色过渡，过渡时间 80ms 且进出对称，避免来回闪。 */
 
 .pifh-filter {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 12px;
-  padding: 7px 10px;
-  background: #ffffff;
-  border: 1px solid #e3e9f0;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(15, 43, 70, 0.05);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 12px;
-  line-height: 1.6;
+  /* 阻断浏览器「夜间模式」把浅色控件自动反转 */
+  color-scheme: light;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start !important;
+  gap: 6px !important;
+  margin: 0 0 12px !important;
+  padding: 7px 10px !important;
+  background: #ffffff !important;
+  border: 1px solid #e3e9f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(15, 43, 70, 0.05) !important;
+  /* 所有排版属性都加 !important：PubMed 自身的 button/容器规则会把字号、
+     行高、内边距放大，只改色不加权的结果是 chip 被撑爆、文字下沉出框 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  text-transform: none !important;
+  box-sizing: border-box !important;
 }
 
-/* 左侧的筛选组允许换行，右侧导出按钮始终贴着右上角不参与换行 */
 .pifh-filter .pifh-main {
-  flex: 0 1 auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
 }
 
 .pifh-filter .pifh-grp {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
 }
 
 .pifh-filter .pifh-lab {
-  color: #94a3b8;
-  font-size: 11px;
-  margin-right: 1px;
+  color: #64748b !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+  margin-right: 2px !important;
+  white-space: nowrap !important;
 }
 
-.pifh-chip {
-  padding: 2px 9px;
-  border: 1px solid #dfe6ee;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #41556b;
-  font-family: inherit;
-  font-size: 11.5px;
-  line-height: 1.7;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+/* 固定尺寸的 chip：高度 22px、最小宽度按组统一 */
+.pifh-filter .pifh-chip {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  height: 22px !important;
+  min-height: 0 !important;
+  max-height: 22px !important;
+  min-width: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  box-shadow: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11.5px !important;
+  /* 字重固定：选中态绝不再改粗细，否则宽度会抖 1–2px */
+  font-weight: 500 !important;
+  line-height: 22px !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-transform: none !important;
+  text-indent: 0 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: background-color 80ms linear, border-color 80ms linear, color 80ms linear !important;
 }
 
-.pifh-chip:hover {
-  border-color: #b9c6d6;
-  color: #0f2b46;
+/* IF 档位文字更宽（10–20 / 未收录），单给一档宽度 */
+.pifh-filter .pifh-chip.pifh-w-wide {
+  min-width: 66px !important;
 }
 
-.pifh-chip[data-on] {
-  background: #0f2b46;
-  border-color: #0f2b46;
-  color: #ffffff;
-  font-weight: 600;
+.pifh-filter .pifh-chip:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f2b46 !important;
 }
 
-.pifh-chip .pifh-chip-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 2px;
-  margin-right: 4px;
-  vertical-align: 0;
+.pifh-filter .pifh-chip[data-on] {
+  background: #0f2b46 !important;
+  border-color: #0f2b46 !important;
+  color: #ffffff !important;
 }
 
-.pifh-sep {
-  width: 1px;
-  height: 15px;
-  margin: 0 3px;
-  background: #e8edf3;
+.pifh-filter .pifh-chip[data-on]:hover {
+  background: #16395c !important;
+  border-color: #16395c !important;
+}
+
+.pifh-filter .pifh-chip-dot {
+  flex: 0 0 auto !important;
+  display: inline-block !important;
+  width: 7px !important;
+  height: 7px !important;
+  min-width: 7px !important;
+  border-radius: 2px !important;
 }
 
 .pifh-count {
-  margin-left: auto;
-  color: #94a3b8;
-  font-size: 11.5px;
-  white-space: nowrap;
+  /* 与导出/帮助同排在最末一行：条件摘要再长也不会去挤 chips 的换行宽度 */
+  flex: 1 1 0 !important;
+  order: 5 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #94a3b8 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+  align-self: center !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: left !important;
 }
 
 .pifh-export {
-  flex: 0 0 auto;
-  align-self: flex-start;
-  padding: 3px 11px;
-  border: 1px solid #cfd9e5;
-  border-radius: 6px;
-  background: #f7fafd;
-  color: #1d4ed8;
-  font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  order: 6 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  flex: 0 0 auto !important;
+  box-sizing: border-box !important;
+  height: 22px !important;
+  min-height: 0 !important;
+  max-height: 22px !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #b6c6e0 !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #1d4ed8 !important;
+  box-shadow: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  line-height: 22px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: background-color 80ms linear, border-color 80ms linear !important;
 }
 
 .pifh-export:hover {
-  background: #eff4ff;
-  border-color: #b6c6e0;
+  background: #eff4ff !important;
+  border-color: #93b0d9 !important;
+}
+
+/* 帮助入口：? 圆钮 + 展开说明 */
+.pifh-help {
+  order: 7 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  flex: 0 0 auto !important;
+  box-sizing: border-box !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-height: 0 !important;
+  max-height: 22px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  cursor: help !important;
+  transition: background-color 80ms linear, border-color 80ms linear, color 80ms linear !important;
+}
+
+.pifh-help:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f2b46 !important;
+}
+
+.pifh-helpbox {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 6px !important;
+  z-index: 40 !important;
+  width: 272px !important;
+  box-sizing: border-box !important;
+  padding: 10px 12px !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 26px rgba(15, 43, 70, 0.16), 0 2px 6px rgba(15, 43, 70, 0.06) !important;
+  color: #334155 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 400 !important;
+  line-height: 1.7 !important;
+  text-align: left !important;
+  white-space: normal !important;
+}
+
+/* hidden 属性若被 display:flex 之类覆盖会"看着隐藏其实还在"，这里显式压住 */
+.pifh-helpbox[hidden] {
+  display: none !important;
+}
+
+.pifh-helpbox b {
+  color: #0f2b46 !important;
+  font-weight: 600 !important;
+}
+
+.pifh-helpbox ul {
+  margin: 6px 0 0 !important;
+  padding-left: 15px !important;
+  font-size: 11.5px !important;
+  line-height: 1.7 !important;
+}
+
+.pifh-helpbox li {
+  margin: 2px 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.7 !important;
+}
+
+/* chip 悬停说明气泡（自绘，不用系统 title，免得等一秒） */
+.pifh-tip {
+  position: fixed !important;
+  z-index: 9998 !important;
+  max-width: 240px !important;
+  padding: 5px 9px !important;
+  margin: 0 !important;
+  border-radius: 6px !important;
+  background: #0f2b46 !important;
+  color: #ffffff !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  box-shadow: 0 6px 16px rgba(15, 43, 70, 0.22) !important;
+  pointer-events: none !important;
+  opacity: 0;
+  visibility: hidden;
+  /* 移出立即收起；出现靠 [data-on] 那条的 delay 做“悬停稍等再出” */
+  transition: opacity 90ms linear 0s, visibility 0s linear 90ms;
+}
+
+.pifh-tip[data-on] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 130ms linear 320ms, visibility 0s linear 320ms;
+}
+
+/* 系统高对比模式下别把我们的配色吃掉 */
+@media (forced-colors: active) {
+  .pifh-chip,
+  .pifh-export,
+  .pifh-help {
+    forced-color-adjust: none;
+  }
 }
 
 /* 被筛掉的结果项：用 !important 压过 PubMed 自己的 display 规则 */
@@ -163,7 +350,7 @@
   display: none !important;
 }
 
-/* ========== 1.3.0：徽章悬停信息卡 ========== */
+/* ========== 徽章悬停信息卡 ========== */
 
 .pifh-card {
   position: fixed;
@@ -239,4 +426,3 @@
   color: #a3b1c0;
   font-size: 10.5px;
 }
-
