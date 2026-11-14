@@ -502,24 +502,20 @@
 
         const { tint, ink } = getIFColors(ifInfo.if);
 
-        // 高亮这个文本节点的父元素
+        // 把期刊名文本节点包进一个高亮 span（而不是给父元素上背景色，
+        // 否则父元素可能是 button/inline-block，兄弟节点插入会导致换行，
+        // 且背景会把 badge 也包进去）
         const parent = node.parentElement;
-        if (parent && parent.tagName !== 'A') {
-          parent.style.backgroundColor = tint;
-          parent.style.color = ink;
-          parent.style.fontWeight = '600';
-          parent.style.borderRadius = '3px';
-          parent.style.padding = '0 3px';
-        }
+        const hlSpan = document.createElement('span');
+        hlSpan.dataset.pifhHl = 'true';
+        hlSpan.textContent = node.textContent;
+        hlSpan.style.cssText = `background:${tint};color:${ink};font-weight:600;border-radius:3px;padding:0 3px;`;
+        parent.replaceChild(hlSpan, node);
 
-        // 在高亮父元素之后插入 badge（不要插进高亮块内部，否则浅绿背景会把徽章也包进去，视觉上两块叠在一起）
+        // 徽章紧跟高亮 span 后面，两者都在行内
         const badge = createIFBadge(ifInfo);
         badge.style.marginLeft = '4px';
-        if (parent && parent.tagName !== 'A') {
-          parent.parentNode.insertBefore(badge, parent.nextSibling);
-        } else {
-          node.parentNode.insertBefore(badge, node.nextSibling);
-        }
+        hlSpan.parentNode.insertBefore(badge, hlSpan.nextSibling);
         break; // 每个引用容器只处理第一个匹配
       }
     });
@@ -547,20 +543,14 @@
 
         log('[Pubmed IF Tag][详情页] 全页扫描找到期刊:', cleanText, 'IF=' + ifInfo.if);
         const { tint, ink } = getIFColors(ifInfo.if);
-        if (parent && parent.tagName !== 'A') {
-          parent.style.backgroundColor = tint;
-          parent.style.color = ink;
-          parent.style.fontWeight = '600';
-          parent.style.borderRadius = '3px';
-          parent.style.padding = '0 3px';
-        }
+        const hlSpan = document.createElement('span');
+        hlSpan.dataset.pifhHl = 'true';
+        hlSpan.textContent = node.textContent;
+        hlSpan.style.cssText = `background:${tint};color:${ink};font-weight:600;border-radius:3px;padding:0 3px;`;
+        parent.replaceChild(hlSpan, node);
         const badge = createIFBadge(ifInfo);
         badge.style.marginLeft = '4px';
-        if (parent && parent.tagName !== 'A') {
-          parent.parentNode.insertBefore(badge, parent.nextSibling);
-        } else {
-          node.parentNode.insertBefore(badge, node.nextSibling);
-        }
+        hlSpan.parentNode.insertBefore(badge, hlSpan.nextSibling);
         break;
       }
     }

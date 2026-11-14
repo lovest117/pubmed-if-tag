@@ -94,12 +94,28 @@
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--sub)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
-  /* 效果截图 */
-  .shot{
-    background:#fff;border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden;
-    box-shadow:0 6px 20px rgba(15,43,70,.06);
+  /* 效果截图 —— 三层堆叠自动翻页 */
+  .deck{position:relative;width:100%;height:340px;margin:0;perspective:1200px;cursor:pointer}
+  .deck .card{
+    position:absolute;inset:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    box-shadow:0 6px 20px rgba(15,43,70,.08);
+    transition:transform .55s cubic-bezier(.22,.9,.3,1), opacity .55s;
+    transform-origin:50% 0%;
   }
-  .shot img{display:block;width:100%;height:auto}
+  .deck .card img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left}
+  .deck .card.cap-abstract img{object-position:top left}
+  .deck .card:nth-child(1){transform:translateY(0) scale(1);opacity:1;z-index:3}
+  .deck .card:nth-child(2){transform:translateY(14px) scale(.965);opacity:.55;z-index:2;filter:blur(.4px)}
+  .deck .card:nth-child(3){transform:translateY(28px) scale(.93);opacity:.25;z-index:1;filter:blur(.8px)}
+  .deck.play .card:nth-child(1){animation:deckOut .6s ease forwards}
+  .deck.done .card:nth-child(1){transform:translateY(28px) scale(.93);opacity:.25;z-index:1;filter:blur(.8px)}
+  .deck.done .card:nth-child(2){transform:translateY(0) scale(1);opacity:1;z-index:3;filter:none}
+  .deck.done .card:nth-child(3){transform:translateY(14px) scale(.965);opacity:.55;z-index:2;filter:blur(.4px)}
+  .deck .tag{
+    position:absolute;left:12px;bottom:10px;background:rgba(15,43,70,.78);color:#fff;font-size:11.5px;
+    padding:3px 10px;border-radius:20px;letter-spacing:.3px;backdrop-filter:blur(4px);
+  }
+  @media(max-width:640px){.deck{height:220px}}
   .figcap{font-size:12.5px;color:#8a99a8;margin:10px 0 0}
   ol,ul{margin:0;padding-left:20px}
   li{margin:6px 0}
@@ -205,12 +221,14 @@
 <section>
   <div class="wrap">
     <h2>效果</h2>
-    <div class="shot">
-      <img src="./img/effect-search.png" alt="Pubmed IF Tag 1.3.0 效果：PubMed 结果页上方的筛选条、按 IF 分档着色的徽章，以及鼠标悬停时展开的期刊信息卡" loading="lazy">
+    <div class="deck" id="deck">
+      <div class="card"><img src="./img/effect-search.png" alt="PubMed 搜索结果页：筛选条与 IF 徽章" loading="eager"><span class="tag">搜索结果页 · 筛选条 + IF 徽章</span></div>
+      <div class="card"><img src="./img/effect-abstract.png" alt="PubMed 摘要页：刊名高亮 + IF 徽章行内显示" loading="lazy"><span class="tag">摘要页 · 刊名高亮 + 行内徽章</span></div>
+      <div class="card"><img src="./img/effect-detail.png" alt="文章详情页：Nat Commun 行内徽章" loading="lazy"><span class="tag">详情页 · 徽章与引文同行</span></div>
     </div>
     <p class="figcap">
-      真实渲染：同样的 DOM 与内置期刊库数据。上方是常驻筛选条（IF 分档 / JCR / 中科院 / Top / 未收录 + 导出），
-      每条结果后面的彩色块是 IF 徽章，鼠标停在徽章上会展开期刊详情卡，点击徽章则复制该刊信息。
+      真实渲染：三层截图自动轮播，点击可手动切换。上方是搜索结果页（常驻筛选条 + IF 徽章 + 悬停详情卡），
+      摘要页与详情页中刊名按 IF 等级高亮，IF 徽章紧跟刊名同行显示。
     </p>
     <div class="legend">
       <span><i class="dot" style="background:#00663F"></i>IF ≥ 20</span>
@@ -770,6 +788,29 @@
     el.addEventListener('click', function () { el.select(); });
     el.addEventListener('focus', function () { el.select(); });
   });
+
+  /* ---------- 效果截图三层堆叠自动轮播 ---------- */
+  (function () {
+    var deck = document.getElementById('deck');
+    if (!deck) return;
+    var cards = deck.querySelectorAll('.card');
+    if (cards.length < 2) return;
+    var timer;
+    function next() {
+      deck.classList.add('done');
+      setTimeout(function () {
+        deck.classList.remove('done');
+        deck.appendChild(cards[0]);          // 顶牌移到底部
+        cards = deck.querySelectorAll('.card');
+      }, 600);
+    }
+    function start() { stop(); timer = setInterval(next, 3800); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    deck.addEventListener('click', function () { next(); start(); });
+    deck.addEventListener('mouseenter', stop);
+    deck.addEventListener('mouseleave', start);
+    start();
+  })();
 })();
 </script>
 
