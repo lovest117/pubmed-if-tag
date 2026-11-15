@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Pubmed IF Tag",
+    "description": "Extension name"
+  },
+  "appDesc": {
+    "message": "Auto-tag PubMed articles with journal Impact Factor (IF), JCR quartile, and Chinese Academy of Sciences partition",
+    "description": "Extension description"
+  }
+}

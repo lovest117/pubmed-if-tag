@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>常见问题 · Pubmed IF Tag</title>
+<style>
+  :root{--ink:#1a2b3c;--sub:#5a6b7d;--line:#e3e9f0;--card:#f7f9fc;--brand:#1d4ed8;--if20ink:#0a5c3a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink);background:#fff;line-height:1.7;font-size:14.5px}
+  .wrap{max-width:780px;margin:0 auto;padding:0 20px}
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:48px}
+  .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .topbar .brand img{width:24px;height:24px;border-radius:5px}
+  .topbar .nav a{color:var(--sub);text-decoration:none;font-size:13.5px}
+  h1{font-size:22px;margin:32px 0 20px}
+  details{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:10px;background:#fff}
+  summary{cursor:pointer;font-weight:600;font-size:14.5px;list-style:none;position:relative;padding-right:24px}
+  summary::after{content:"+";position:absolute;right:4px;top:0;font-size:18px;color:var(--sub)}
+  details[open] summary::after{content:"−"}
+  details p{margin-top:10px;color:var(--sub);font-size:13.5px}
+  details p b{color:var(--ink)}
+  code{background:var(--card);padding:1px 5px;border-radius:4px;font-size:12.5px;font-family:ui-monospace,Consolas,monospace}
+  footer{margin-top:40px;padding:24px 0;border-top:1px solid var(--line);color:var(--sub);font-size:12.5px;text-align:center}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="wrap">
+    <a class="brand" href="./index.html"><img src="./icons/icon48.png" alt="logo"> Pubmed IF Tag</a>
+    <div class="nav"><a href="./index.html">← 返回主页</a></div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <h1>常见问题</h1>
+
+  <details open>
+    <summary>装上了，页面上什么都没出现</summary>
+    <p>先确认「加载解压缩的扩展」选中的目录里有 manifest.json，且扩展开关是开启状态。然后回到 PubMed 按 Ctrl+F5。如果之前加载过旧目录，那个目录被移动或删除后扩展会失效，需要删掉旧条目、重新加载当前目录。</p>
+  </details>
+
+  <details>
+    <summary>筛选条为什么有时看不见</summary>
+    <p>筛选条只出现在搜索结果页（有结果列表时），文章详情页和 PMC 页面不显示。往下滚动时它会贴在 PubMed 顶部导航的下沿常驻；如果结果被筛到 0 条，筛选条仍然在，点「全部」即可还原。</p>
+  </details>
+
+  <details>
+    <summary>导出 CSV 里为什么只有几条</summary>
+    <p>导出的范围是<b>当前筛选后可见的条目</b>，这是刻意设计的：先把不想要的筛掉，再导出就是干净的清单。想要全部就点「全部」再导出。</p>
+  </details>
+
+  <details>
+    <summary>某个期刊没有 IF 标签</summary>
+    <p>说明库里还没收录，或者 PubMed 显示的缩写与库里写法不一致。在主页反馈区只填刊名就行 —— IF 和分区由系统从内置库自动查，补录后你在弹窗点一次「更新期刊数据」就能拿到。</p>
+  </details>
+
+  <details>
+    <summary>点「更新期刊数据」没反应或报错</summary>
+    <p>更新需要访问 GitHub。如果网络受限，可以改用「打开 GitHub（手动更新）」到仓库页面自行查看 <code>data/journal-if.js</code>，或在主页重新下载最新 zip 覆盖解压目录，再到扩展页点刷新。任何情况下都不会影响已有标签显示。</p>
+  </details>
+
+  <details>
+    <summary>数据准确吗，能引用吗</summary>
+    <p>内置数据来自 Clarivate JCR 2025（2026 年 6 月发布）与中国科学院文献情报中心《期刊分区表》2025 版。两套指标每年更新，正式投稿、评职称等场合请以官方数据为准，本扩展只用于快速筛选文献。</p>
+  </details>
+
+  <details>
+    <summary>会不会和其他插件冲突</summary>
+    <p>只操作 PubMed 页面里引用行的文本与徽章，不改动 PubMed 自身结构，一般可与 ScholarScope 等共存，但不建议同时开两个同类插件，以免重复标注。</p>
+  </details>
+
+  <details>
+    <summary>Edge 商店更新和官网下载有什么区别</summary>
+    <p>Edge 商店上架后会经过微软审核（通常 1–7 天），审核通过后自动推送给所有用户，更新较慢但最省事。官网下载的 zip 是即时打包的最新版，可以马上体验新功能，但需要手动解压并在扩展页加载。两个渠道的功能完全一致。</p>
+  </details>
+
+  <details>
+    <summary>Chrome 能用吗</summary>
+    <p>可以。Chrome 不允许未上架的扩展长期保留，但可以通过「加载解压缩的扩展」方式使用，和 Edge 本地加载流程一样。每次点扩展卡片上的刷新按钮即可更新。</p>
+  </details>
+</div>
+
+<footer>Pubmed IF Tag · MIT License · <a href="https://github.com/lovest117/pubmed-if-tag">GitHub</a></footer>
+
+</body>
+</html>

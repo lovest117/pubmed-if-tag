@@ -71,9 +71,30 @@
     display:inline-block;padding:1px 9px;border-radius:999px;
     background:#E0EDE8;color:var(--if20ink);font-size:12px;font-weight:600;
   }
-  section{padding:36px 0;border-bottom:1px solid var(--line);scroll-margin-top:24px}
+  section{padding:36px 0;border-bottom:1px solid var(--line);scroll-margin-top:60px}
   h2{font-size:17px;margin:0 0 16px;display:flex;align-items:center;gap:8px}
   h2::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px}
+
+  /* 顶部导航栏 */
+  .topbar{
+    position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:48px}
+  .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .topbar .brand img{width:24px;height:24px;border-radius:5px}
+  .topbar .nav{display:flex;align-items:center;gap:16px;font-size:13.5px}
+  .topbar .nav a{color:var(--sub);text-decoration:none}
+  .topbar .nav a:hover{color:var(--ink)}
+  .topbar .nav .btn{padding:6px 14px;font-size:13px}
+
+  /* Hero 卖点 */
+  .sellpoints{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 22px}
+  .sellpoints .sp{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-align:left}
+  .sellpoints .sp .ico{font-size:22px;margin-bottom:6px}
+  .sellpoints .sp b{display:block;font-size:13.5px;margin-bottom:3px}
+  .sellpoints .sp span{font-size:12.5px;color:var(--sub);line-height:1.5}
+  @media(max-width:640px){.sellpoints{grid-template-columns:1fr}}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
   .card h3{font-size:14px;margin:0 0 6px;font-weight:600}
@@ -121,6 +142,9 @@
   .warn{background:#fff9ed;border:1px solid #f5e3c2;border-left:3px solid #d99a2b;border-radius:8px;padding:12px 16px;font-size:13.5px;color:#6b4d14;margin-top:14px}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .cmp th:first-child,.cmp td:first-child{font-weight:600}
+  .cmp .us{background:#f0f7f4}
+  .cmp .us-col{background:#E0EDE8;font-weight:700;color:var(--if20ink)}
   th{color:var(--sub);font-weight:600;font-size:12.5px;width:150px}
   details{border-bottom:1px solid var(--line);padding:12px 0}
   details:last-child{border-bottom:none}
@@ -193,23 +217,35 @@
 </head>
 <body>
 
+<nav class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="./icons/icon48.png" alt="logo"> Pubmed IF Tag</a>
+    <div class="nav">
+      <a href="#faq">常见问题</a>
+      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.3.zip">下载</a>
+    </div>
+  </div>
+</nav>
+
 <header>
   <div class="wrap">
-    <h1>Pubmed IF Tag</h1>
+    <h1>在 PubMed 上一眼看到期刊影响因子</h1>
     <p class="lead">
-      在 PubMed 搜索结果和文章详情页自动标注期刊<b>影响因子（IF）</b>和 <b>JCR / 中科院分区</b>。
-      ScholarScope 的免费替代，内置 13575 本期刊（JCR 2025 + 中科院分区表 2025），
-      数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
+      装个浏览器扩展，搜索结果自动按 IF 分档着色、筛选、导出，不用再逐个查期刊。
+      内置 13575 本期刊（JCR 2025 + 中科院分区表 2025），数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
     </p>
+    <div class="sellpoints">
+      <div class="sp"><div class="ico">🔒</div><b>本地运行</b><span>纯前端注入，不发请求，不收集数据，断网也能标注</span></div>
+      <div class="sp"><div class="ico">📚</div><b>13500+ 期刊库</b><span>JCR 2025 影响因子 + 中科院 2025 分区，每年更新一次</span></div>
+      <div class="sp"><div class="ico">🎯</div><b>筛选 + 导出</b><span>按 IF 档位 / JCR / 中科院组合过滤，一键导出 CSV</span></div>
+    </div>
     <div class="btns">
-      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.2.zip">下载扩展（zip）</a>
+      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.3.zip">下载扩展（zip）</a>
       <a class="btn btn-ghost" href="./search.html">在线查期刊分区</a>
-      <a class="btn btn-ghost" href="#feedback">反馈无 IF 标签的期刊</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
-      <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
     </div>
     <p class="meta">
-      版本 <b data-ver data-ver-static>v1.3.2</b> ·
+      版本 <b data-ver data-ver-static>v1.3.3</b> ·
       <span class="pill" title="两套指标均为当前最新年度版本，每年更新一次">数据：Clarivate JCR 2025 + 中科院分区表 2025</span>
       · MIT 许可
     </p>
@@ -283,6 +319,32 @@
         <p>只有你点更新或点版本号检查时才联网。期刊库与设置都存在 <code>chrome.storage.local</code>，不采集、不上传。</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>和同类工具比一比</h2>
+    <table class="cmp">
+      <tr>
+        <th></th>
+        <th>Lazy Scholar</th>
+        <th>Scholarscope</th>
+        <th class="us-col">本插件</th>
+      </tr>
+      <tr><td>影响因子标注</td><td>✅</td><td>✅</td><td class="us">✅</td></tr>
+      <tr><td>JCR 分区（Q1–Q4）</td><td>❌</td><td>✅</td><td class="us">✅</td></tr>
+      <tr><td>中科院分区 + Top</td><td>❌</td><td>❌</td><td class="us">✅</td></tr>
+      <tr><td>结果页组合筛选条</td><td>❌</td><td>部分</td><td class="us">✅ 多选叠加</td></tr>
+      <tr><td>导出 CSV</td><td>❌</td><td>❌</td><td class="us">✅ 仅导出可见条目</td></tr>
+      <tr><td>服务器依赖</td><td>美国节点</td><td>上海节点</td><td class="us">无，纯本地</td></tr>
+      <tr><td>隐私</td><td>需联网请求</td><td>需联网请求</td><td class="us">零请求，断网可用</td></tr>
+      <tr><td>价格</td><td>免费</td><td>部分收费</td><td class="us">免费开源 MIT</td></tr>
+    </table>
+    <p class="figcap">
+      同类工具信息基于公开版本（2026-11），如有出入以官方为准。Lazy Scholar 为个人维护、2026 年初发布 3.0 重写版；Scholarscope 核心功能需付费使用。
+      本插件核心差异：本地运行不依赖服务器、内置中科院分区、支持筛选与 CSV 导出。
+    </p>
   </div>
 </section>
 
@@ -441,37 +503,14 @@
   </div>
 </section>
 
-<section>
+<section id="faq">
   <div class="wrap">
     <h2>常见问题</h2>
-    <details>
+    <details open>
       <summary>装上了，页面上什么都没出现</summary>
       <p>先确认「加载解压缩的扩展」选中的目录里有 manifest.json，且扩展开关是开启状态。然后回到 PubMed 按 Ctrl+F5。如果之前加载过旧目录，那个目录被移动或删除后扩展会失效，需要删掉旧条目、重新加载当前目录。</p>
     </details>
-    <details>
-      <summary>筛选条为什么有时看不见</summary>
-      <p>筛选条只出现在搜索结果页（有结果列表时），文章详情页和 PMC 页面不显示。往下滚动时它会贴在 PubMed 顶部导航的下沿常驻；如果结果被筛到 0 条，筛选条仍然在，点「全部」即可还原。</p>
-    </details>
-    <details>
-      <summary>导出 CSV 里为什么只有几条</summary>
-      <p>导出的范围是<b>当前筛选后可见的条目</b>，这是刻意设计的：先把不想要的筛掉，再导出就是干净的清单。想要全部就点「全部」再导出。</p>
-    </details>
-    <details>
-      <summary>某个期刊没有 IF 标签</summary>
-      <p>说明库里还没收录，或者 PubMed 显示的缩写与库里写法不一致。在上面反馈区只填刊名就行 —— IF 和分区由系统从内置库自动查，补录后你在弹窗点一次「更新期刊数据」就能拿到。</p>
-    </details>
-    <details>
-      <summary>点「更新期刊数据」没反应或报错</summary>
-      <p>更新需要访问 GitHub。如果网络受限，可以改用「打开 GitHub（手动更新）」到仓库页面自行查看 <code>data/journal-if.js</code>，或在本页重新下载最新 zip 覆盖解压目录，再到扩展页点刷新。任何情况下都不会影响已有标签显示。</p>
-    </details>
-    <details>
-      <summary>数据准确吗，能引用吗</summary>
-      <p>内置数据来自 Clarivate JCR 2025（2026 年 6 月发布）与中国科学院文献情报中心《期刊分区表》2025 版。两套指标每年更新，正式投稿、评职称等场合请以官方数据为准，本扩展只用于快速筛选文献。</p>
-    </details>
-    <details>
-      <summary>会不会和其他插件冲突</summary>
-      <p>只操作 PubMed 页面里引用行的文本与徽章，不改动 PubMed 自身结构，一般可与 ScholarScope 等共存，但不建议同时开两个同类插件，以免重复标注。</p>
-    </details>
+    <p style="margin-top:12px"><a class="btn btn-ghost" href="./faq.html">查看全部常见问题 →</a></p>
   </div>
 </section>
 

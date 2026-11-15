@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "PubMed 影响因子标注",
+    "description": "扩展名称"
+  },
+  "appDesc": {
+    "message": "在 PubMed 搜索结果和文章页自动标注期刊影响因子（IF）、JCR 分区与中科院分区",
+    "description": "扩展描述"
+  }
+}
