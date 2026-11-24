@@ -80,19 +80,22 @@
     position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
     border-bottom:1px solid var(--line);
   }
-  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:48px}
-  .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
-  .topbar .brand img{width:24px;height:24px;border-radius:5px}
-  .topbar .nav{display:flex;align-items:center;gap:16px;font-size:13.5px}
-  .topbar .nav a{color:var(--sub);text-decoration:none}
-  .topbar .nav a:hover{color:var(--ink)}
-  .topbar .nav .btn{padding:6px 14px;font-size:13px}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--ink);text-decoration:none}
+  .topbar .brand img{width:30px;height:30px;border-radius:6px}
+  .topbar .nav{display:flex;align-items:center;gap:8px}
+  .topbar .nav a{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:var(--sub);text-decoration:none;transition:background .15s}
+  .topbar .nav a:hover{background:var(--line);color:var(--ink)}
+  .topbar .nav a svg{width:26px;height:26px}
+  .topbar .nav a img{width:28px;height:28px;border-radius:4px;object-fit:contain}
+  .topbar .nav a.brand-icon svg{fill:currentColor;stroke:none;width:24px;height:24px}
 
   /* Hero 卖点 */
   .sellpoints{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 22px}
   .sellpoints .sp{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-align:left}
-  .sellpoints .sp .ico{font-size:22px;margin-bottom:6px}
-  .sellpoints .sp b{display:block;font-size:13.5px;margin-bottom:3px}
+  .sellpoints .sp .head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .sellpoints .sp .ico{font-size:22px}
+  .sellpoints .sp b{font-size:22px}
   .sellpoints .sp span{font-size:12.5px;color:var(--sub);line-height:1.5}
   @media(max-width:640px){.sellpoints{grid-template-columns:1fr}}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
@@ -221,34 +224,46 @@
   <div class="wrap">
     <a class="brand" href="#"><img src="./icons/icon48.png" alt="logo"> Pubmed IF Tag</a>
     <div class="nav">
-      <a href="#faq">常见问题</a>
-      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.3.zip">下载</a>
+      <a href="https://microsoftedge.microsoft.com/addons/detail/0rdck9bnlbp" target="_blank" rel="noopener" title="Edge 商店安装" aria-label="Edge 商店安装">
+        <img src="./icons/edge-logo.png" alt="Edge 商店">
+      </a>
+      <a data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.3.zip" title="下载扩展 (zip)" aria-label="下载扩展">
+        <img src="./icons/zip.png" alt="下载 zip">
+      </a>
+      <a href="./search.html" title="在线查期刊分区" aria-label="在线查期刊分区">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="20,4 16.5,12 23.5,12" fill="#00663F"/>
+          <polygon points="16.5,12 23.5,12 27,20 13,20" fill="#2E9968"/>
+          <polygon points="13,20 27,20 30.5,28 9.5,28" fill="#F2CD76"/>
+          <polygon points="9.5,28 30.5,28 34,36 6,36" fill="#DD8344"/>
+          <text x="1" y="24" font-size="6" fill="#888" font-family="sans-serif">JCR</text>
+          <text x="39" y="24" font-size="6" fill="#888" font-family="sans-serif" text-anchor="end">CAS</text>
+        </svg>
+      </a>
+      <a href="#faq" title="常见问题" aria-label="常见问题">
+        <img src="./icons/faq.png" alt="常见问题">
+      </a>
+      <a href="https://github.com/lovest117/pubmed-if-tag" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库" class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 .3a12 12 0 00-3.79 23.39c.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 016 0c2.28-1.55 3.28-1.23 3.28-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.9 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0012 .3z"/></svg>
+      </a>
     </div>
   </div>
 </nav>
 
 <header>
   <div class="wrap">
-    <h1>在 PubMed 上一眼看到期刊影响因子</h1>
-    <p class="lead">
-      装个浏览器扩展，搜索结果自动按 IF 分档着色、筛选、导出，不用再逐个查期刊。
-      内置 13575 本期刊（JCR 2025 + 中科院分区表 2025），数据存在你自己电脑上，不联网采集、不上传任何浏览记录。
-    </p>
+    <h1>在 PubMed 上一眼看到期刊影响因子 <span style="font-size:13px;font-weight:400;color:var(--sub);vertical-align:middle"><b data-ver data-ver-static>v1.3.3</b> · JCR 2025 + 中科院 2025 · MIT</span></h1>
+    <p class="lead">搜索结果自动按 IF 分档着色、筛选、导出，不用再逐个查期刊。数据存本地，断网可用。</p>
     <div class="sellpoints">
-      <div class="sp"><div class="ico">🔒</div><b>本地运行</b><span>纯前端注入，不发请求，不收集数据，断网也能标注</span></div>
-      <div class="sp"><div class="ico">📚</div><b>13500+ 期刊库</b><span>JCR 2025 影响因子 + 中科院 2025 分区，每年更新一次</span></div>
-      <div class="sp"><div class="ico">🎯</div><b>筛选 + 导出</b><span>按 IF 档位 / JCR / 中科院组合过滤，一键导出 CSV</span></div>
+      <div class="sp"><div class="head"><div class="ico">🔒</div><b>本地运行</b></div><span>不发请求，不收集数据</span></div>
+      <div class="sp"><div class="head"><div class="ico">📚</div><b>13500+ 期刊库</b></div><span>JCR 2025 + 中科院 2025 分区</span></div>
+      <div class="sp"><div class="head"><div class="ico">🎯</div><b>筛选 + 导出</b></div><span>组合过滤，一键 CSV</span></div>
     </div>
     <div class="btns">
       <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.3.zip">下载扩展（zip）</a>
       <a class="btn btn-ghost" href="./search.html">在线查期刊分区</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag">GitHub 仓库</a>
     </div>
-    <p class="meta">
-      版本 <b data-ver data-ver-static>v1.3.3</b> ·
-      <span class="pill" title="两套指标均为当前最新年度版本，每年更新一次">数据：Clarivate JCR 2025 + 中科院分区表 2025</span>
-      · MIT 许可
-    </p>
   </div>
 </header>
 
@@ -260,10 +275,7 @@
       <div class="card"><img src="./img/effect-abstract.png" alt="PubMed 摘要页：刊名高亮 + IF 徽章行内显示" loading="lazy"><span class="tag">摘要页 · 刊名高亮 + 行内徽章</span></div>
       <div class="card"><img src="./img/effect-detail.png" alt="文章详情页：Nat Commun 行内徽章" loading="lazy"><span class="tag">详情页 · 徽章与引文同行</span></div>
     </div>
-    <p class="figcap">
-      真实渲染：三层截图自动轮播，点击可手动切换。上方是搜索结果页（常驻筛选条 + IF 徽章 + 悬停详情卡），
-      摘要页与详情页中刊名按 IF 等级高亮，IF 徽章紧跟刊名同行显示。
-    </p>
+    <p class="figcap">三层截图自动轮播，点击切换。</p>
     <div class="legend">
       <span><i class="dot" style="background:#00663F"></i>IF ≥ 20</span>
       <span><i class="dot" style="background:#2E9968"></i>10 ≤ IF &lt; 20</span>
@@ -279,44 +291,28 @@
     <h2>功能亮点</h2>
     <div class="grid">
       <div class="card">
-        <h3>搜索结果页高亮</h3>
-        <p>引用行的「期刊缩写. 年份」按 IF 等级上色加粗，后面跟 IF 与分区徽章，扫一眼就能筛掉低分文献。</p>
+        <h3>全站标注</h3>
+        <p>搜索结果与详情页的刊名按 IF 等级着色，紧跟 IF 与分区徽章，扫一眼即可筛掉低分文献。</p>
       </div>
       <div class="card">
-        <h3>结果页筛选（1.3.0）</h3>
-        <p>结果列表上方常驻一条筛选条：按 IF 档位、JCR Q1–Q4、中科院 1–4 区、Top 组合过滤，只显示你要的文献，并实时告诉你「显示 X / Y 条」。</p>
+        <h3>筛选与导出</h3>
+        <p>按 IF 档位、JCR Q1–Q4、中科院分区、Top 组合过滤，一键导出可见条目为 CSV（Excel 直接打开）。</p>
       </div>
       <div class="card">
-        <h3>导出 CSV（1.3.0）</h3>
-        <p>把当前筛选后看得到的条目导出成 CSV：期刊、年份、IF、JCR、中科院、Top、标题、PMID、链接。直接进 Excel 或 EndNote 前的清单。</p>
+        <h3>悬停详情</h3>
+        <p>鼠标停在徽章上即显示期刊全称、缩写、IF、JCR、中科院分区与数据版本，无需跳转页面。</p>
       </div>
       <div class="card">
-        <h3>悬停信息卡（1.3.0）</h3>
-        <p>鼠标停在徽章上，弹出该刊全称、缩写、IF、JCR 分区、中科院分区与数据版本，不用点开任何页面。</p>
+        <h3>点击复制</h3>
+        <p>点徽章即复制「期刊全称 IF 14.7 (Q1) 中科院1区」到剪贴板，写引文直接粘贴。</p>
       </div>
       <div class="card">
-        <h3>文章详情页标注</h3>
-        <p>详情页引用行末尾追加同样的徽章，不用来回切页面查期刊。</p>
+        <h3>数据可更新</h3>
+        <p>弹窗一键拉取最新期刊库合并到本地，无需重装；缺失期刊点小问号即可反馈。</p>
       </div>
       <div class="card">
-        <h3>一键更新期刊库</h3>
-        <p>弹窗里点一下就从仓库拉取最新数据并合并到本地，不用重新安装扩展。三个源自动回退，任一可用即可成功。</p>
-      </div>
-      <div class="card">
-        <h3>反馈缺失期刊</h3>
-        <p>详情页遇到库里没有的期刊，会冒出一个小问号；点一下就把刊名带进反馈页，不用手打。IF 与分区由系统查表补。</p>
-      </div>
-      <div class="card">
-        <h3>可按需调设置</h3>
-        <p>弹窗右上角「设置」里可以关掉搜索页或详情页的标注、隐藏分区、改 IF 颜色阈值、切换紧凑样式。</p>
-      </div>
-      <div class="card">
-        <h3>点击徽章复制</h3>
-        <p>点一下 IF 徽章，就把「期刊全称 IF 14.7 (Q1) 中科院1区」复制进剪贴板，写综述引文时直接粘。</p>
-      </div>
-      <div class="card">
-        <h3>隐私</h3>
-        <p>只有你点更新或点版本号检查时才联网。期刊库与设置都存在 <code>chrome.storage.local</code>，不采集、不上传。</p>
+        <h3>隐私安全</h3>
+        <p>仅手动更新时联网，期刊库与设置存 <code>chrome.storage.local</code>，不采集、不上传。</p>
       </div>
     </div>
   </div>
@@ -341,10 +337,7 @@
       <tr><td>隐私</td><td>需联网请求</td><td>需联网请求</td><td class="us">零请求，断网可用</td></tr>
       <tr><td>价格</td><td>免费</td><td>部分收费</td><td class="us">免费开源 MIT</td></tr>
     </table>
-    <p class="figcap">
-      同类工具信息基于公开版本（2026-11），如有出入以官方为准。Lazy Scholar 为个人维护、2026 年初发布 3.0 重写版；Scholarscope 核心功能需付费使用。
-      本插件核心差异：本地运行不依赖服务器、内置中科院分区、支持筛选与 CSV 导出。
-    </p>
+    <p class="figcap">同类工具信息基于公开版本（2026-11），如有出入以官方为准。</p>
   </div>
 </section>
 
@@ -352,9 +345,9 @@
   <div class="wrap">
     <h2>反馈</h2>
     <p class="lead">
-      填一句话就行，点「生成反馈文本」会直接复制到剪贴板 —— 粘到
+      填一句话即可，点「生成反馈文本」自动复制，粘到
       <a href="https://github.com/lovest117/pubmed-if-tag/issues/new/choose">GitHub Issue</a>
-      里，或者随手发给开发者都可以，<b>不需要登录</b>。期刊没标签的，只填刊名，IF 和分区系统自己查。
+      或发给开发者均可，<b>无需登录</b>。
     </p>
 
     <div class="tabs">
@@ -374,7 +367,7 @@
         <a class="minor" id="issueJournal" href="https://github.com/lovest117/pubmed-if-tag/issues/new/choose" target="_blank" rel="noopener">或去 GitHub 提交</a>
       </div>
       <textarea id="outJournal" class="out" rows="8" readonly></textarea>
-      <p class="hint">生成后点一下文本框即可全选复制；已帮你复制好的话直接粘贴就行。</p>
+      <p class="hint">已自动复制，直接粘贴即可。</p>
     </div>
 
     <div class="panel" id="panel-idea">
@@ -397,7 +390,7 @@
         </div>
         <div>
           <label for="bugVer">插件版本（可选）</label>
-          <input id="bugVer" placeholder="v1.3.2" autocomplete="off">
+          <input id="bugVer" placeholder="v1.3.3" autocomplete="off">
         </div>
       </div>
       <div class="actions">
@@ -405,24 +398,30 @@
         <a class="minor" id="issueBug" href="https://github.com/lovest117/pubmed-if-tag/issues/new/choose" target="_blank" rel="noopener">或去 GitHub 提交</a>
       </div>
       <textarea id="outBug" class="out" rows="8" readonly></textarea>
-      <p class="hint">截图没法通过网页代为上传；走到 GitHub 那一步时可以直接把截图拖进输入框。</p>
+      <p class="hint">截图请在 GitHub Issue 中直接拖入。</p>
     </div>
   </div>
 </section>
 
 <section>
   <div class="wrap">
-    <h2>安装说明（Edge / Chrome）</h2>
+    <h2>安装说明</h2>
+    <div class="card" style="margin-bottom:16px">
+      <h3>推荐：从 Edge 商店安装</h3>
+      <p>已上架 Microsoft Edge 外接程序商店，搜索「PubMed 影响因子标注」即可一键安装，自动更新，无需开发者模式。</p>
+      <p><a class="btn btn-primary" href="https://microsoftedge.microsoft.com/addons/detail/0rdck9bnlbp" target="_blank" rel="noopener">前往 Edge 商店</a></p>
+    </div>
+    <h3 style="font-size:14px;font-weight:600;margin:20px 0 10px">手动加载 zip（Chrome 用户或体验最新版）</h3>
     <ol>
-      <li>下载上面的 zip，解压到任意固定目录，例如 <code>D:\Tools\Pubmed-IF-Tag</code>。<b>解压后这个目录以后不要移动或删除</b>，扩展直接从这个目录加载。</li>
-      <li>打开 <code>edge://extensions/</code>（Chrome 是 <code>chrome://extensions/</code>）。</li>
-      <li>打开左下角（或右上角）的「开发人员模式」。</li>
-      <li>点「加载解压缩的扩展」，选择第 1 步解压出来的目录 —— 要选到<b>能看到 manifest.json 的那一层</b>。</li>
+      <li>下载 zip 并解压到固定目录，例如 <code>D:\Tools\Pubmed-IF-Tag</code>。<b>解压后勿移动或删除</b>，扩展从该目录加载。</li>
+      <li>打开 <code>edge://extensions/</code>（Chrome 为 <code>chrome://extensions/</code>）。</li>
+      <li>开启左下角（或右上角）「开发人员模式」。</li>
+      <li>点「加载解压缩的扩展」，选择解压目录——要选到<b>能看到 manifest.json 的那一层</b>。</li>
       <li>打开任意 PubMed 页面，按 <kbd>Ctrl</kbd> + <kbd>F5</kbd> 强制刷新。</li>
     </ol>
     <div class="warn">
-      <b>为什么必须开开发者模式？</b> 这个扩展没有上架 Edge 商店（上架需要开发者账号与审核），本地加载未签名的扩展就只能走「加载解压缩的扩展」。<br>
-      <b>为什么不直接装 crx？</b> Edge 会把非商店来源的 crx 标记为「来自其他源」，安装后开关会被锁定、无法启用。所以只提供 zip。
+      <b>为什么手动加载需要开发者模式？</b> 本地加载未签名的扩展必须开启开发者模式，这是浏览器的安全限制。<br>
+      <b>为什么不直接装 crx？</b> 浏览器会把非商店来源的 crx 标记为「来自其他源」，安装后开关会被锁定。所以只提供 zip。
     </div>
   </div>
 </section>
@@ -431,38 +430,31 @@
   <div class="wrap">
     <h2>版本与更新</h2>
     <p class="lead">
-      当前最新 <b data-ver data-ver-static>v1.3.2</b>。侧载安装的版本需要手动换包；
-      插件里点一下版本号也能查到有没有新版，有新版时那一行会直接给出下载入口。
+      当前最新 <b data-ver data-ver-static>v1.3.3</b>。商店版自动更新；侧载版需手动换包，插件里点版本号即可检查更新。
     </p>
     <div class="grid">
       <div class="card">
-        <h3>换包只需要三步</h3>
+        <h3>侧载换包三步</h3>
         <ol>
-          <li>点下面的按钮下载最新 zip；</li>
-          <li>解压，<b>覆盖</b>原来那个扩展目录（目录路径不要改）；</li>
-          <li>打开 <code>edge://extensions/</code>（Chrome 用 <code>chrome://extensions/</code>），点该扩展卡片上的刷新 ↻，再回 PubMed 按 <kbd>Ctrl</kbd>+<kbd>F5</kbd>。</li>
+          <li>从顶部下载最新 zip；</li>
+          <li>解压<b>覆盖</b>原扩展目录；</li>
+          <li>在 <code>edge://extensions/</code> 点刷新 ↻，再按 <kbd>Ctrl</kbd>+<kbd>F5</kbd>。</li>
         </ol>
-        <p class="meta" style="margin-top:10px">期刊库和显示设置都存在本地，换包不会丢。</p>
+        <p class="meta" style="margin-top:10px">期刊库与设置存本地，换包不丢失。</p>
       </div>
       <div class="card">
-        <h3>多数情况其实不用换包</h3>
-        <p>期刊数据是独立的：弹窗点一次「更新期刊数据」就从仓库拉最新库合并到本地，比换包方便。</p>
-        <p style="margin-top:8px">只有插件本身的功能改动才需要换包。弹窗标题右侧点一下版本号，能查到有没有新版。</p>
-      </div>
-      <div class="card">
-        <h3>Edge 商店安装的用户</h3>
-        <p>从 Edge 商店安装的插件会<b>自动更新</b>，不需要手动换包。但商店更新比本页下载慢，原因是：每次提交都要经过微软人工审核（通常 <b>1–7 个工作日</b>），审核通过后才会推送到用户端；本页 zip 是作者直接发布，上传即生效。</p>
-        <p style="margin-top:8px">急着用新功能可以从本页下载 zip 侧载（开发者模式加载），期刊数据和设置与商店版完全互通，不会丢。</p>
+        <h3>更新说明</h3>
+        <p>期刊数据可在弹窗内一键更新，无需换包。商店版自动更新（微软审核 1–7 个工作日）；本页 zip 上传即生效，急着用新功能可侧载。</p>
       </div>
     </div>
     <div class="btns" style="margin-top:16px">
-      <a class="btn btn-primary" data-dl data-dl-static href="./download/Pubmed-IF-Tag-v1.3.2.zip">下载 <span data-ver-static>v1.3.2</span> 安装包</a>
       <a class="btn btn-ghost" href="https://github.com/lovest117/pubmed-if-tag/releases">全部历史版本</a>
     </div>
 
     <h3 style="font-size:14px;font-weight:600;margin:26px 0 10px">更新详情</h3>
     <table>
       <tbody>
+      <tr><th>v1.3.3</th><td>增加了中英文界面本地化（i18n）支持，商店清单可显示中文名称与描述。</td></tr>
       <tr><th>v1.3.2</th><td>修复了摘要页 IF 徽章被插进刊名高亮块内部、导致两个色块重叠并换行的问题；徽章现在紧跟刊名同行显示。感谢 Dr. Xiang 反馈。</td></tr>
       <tr><th>v1.3.1</th><td>修复了徽章悬停信息卡鼠标移走后不消失的问题；增加了筛选条组内多选叠加、按钮悬停中文说明与「?」帮助面板。</td></tr>
       </tbody>
@@ -481,13 +473,20 @@
       </tbody>
     </table>
     <button id="showOld" class="btn btn-ghost" style="margin-top:10px;font-size:13px">显示更多历史版本 ▾</button>
+
+    <h3 style="font-size:14px;font-weight:600;margin:26px 0 10px">计划更新</h3>
+    <table>
+      <tbody>
+      <tr><th><span class="pill">规划中</span></th><td><b>预警期刊名单标注</b>：在期刊徽章旁标注被列入预警/整改名单的期刊，名单每年随新表维护。</td></tr>
+      <tr><th><span class="pill">持续</span></th><td><b>期刊数据年度同步</b>：每年随 JCR 与中科院分区新表发布后更新内置期刊库。</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
 <section id="privacy">
   <div class="wrap">
     <h2>权限与隐私</h2>
-    <p class="lead">这一节就是完整的隐私说明，商店审核与用户核对都以它为准。</p>
     <table>
       <tr><th>storage</th><td>保存更新后的期刊库、你的显示设置与更新记录，仅本机可见，卸载即清除。</td></tr>
       <tr><th>api.github.com</th><td>点「更新期刊数据」或点版本号检查更新时，读取仓库里的期刊数据文件或版本号。</td></tr>
@@ -496,9 +495,7 @@
       <tr><th>pubmed.ncbi.nlm.nih.gov</th><td>只在 PubMed 页面上读取页面里的期刊名与年份，用于匹配标签；在你点「导出 CSV」时由本地生成文件，不上传。</td></tr>
     </table>
     <p class="meta" style="margin-top:12px">
-      不申请 <code>tabs</code>、<code>history</code>、<code>webRequest</code>、<code>cookies</code> 等权限，
-      不读取搜索历史与浏览记录，不嵌入任何统计或广告脚本，不向任何服务器发送你的使用数据。
-      反馈文本由你的浏览器本地生成，复制到哪由你决定。
+      不申请 <code>tabs</code>、<code>history</code>、<code>cookies</code> 等权限，不嵌入统计或广告脚本。
     </p>
   </div>
 </section>
@@ -516,9 +513,8 @@
 
 <footer>
   <div class="wrap">
-    Pubmed IF Tag · MIT License · 仅用于个人文献筛选，不提供任何形式的期刊评价结论<br>
+    Pubmed IF Tag · MIT License · 仅用于文献筛选，不提供期刊评价结论<br>
     <a href="#feedback">反馈</a> ·
-    <a href="#update">版本更新</a> ·
     <a href="./search.html">期刊查询</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag">GitHub</a> ·
     <a href="https://github.com/lovest117/pubmed-if-tag/releases">历史版本</a>
@@ -532,7 +528,7 @@
   'use strict';
 
   var REPO = 'lovest117/pubmed-if-tag';
-  var FALLBACK_VER = 'v1.3.2';
+  var FALLBACK_VER = 'v1.3.3';
 
   /* ---------- 版本号：以 version.json 为准，静态值只是兜底 ---------- */
   function applyVersion(v) {
