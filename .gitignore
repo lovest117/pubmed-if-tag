@@ -22,3 +22,5 @@ data/journal-if.js.bak2
 _test/
 # 导出的期刊数据包（供 AI/外部程序读取，约 2 MB，可随时用 scripts 重新生成）
 export/
+# 内部交接文档，不入库
+交接单.md
